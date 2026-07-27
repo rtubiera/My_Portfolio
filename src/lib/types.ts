@@ -34,6 +34,7 @@ export type SiteSettings = {
   metrics: Metric[]
   seo_title: string
   seo_description: string
+  og_image_url: string | null
 
   // Appearance — set from the CMS "Theme" tab.
   logo_url: string | null

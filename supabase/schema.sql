@@ -27,6 +27,7 @@ create table if not exists public.site_settings (
   metrics       jsonb not null default '[]'::jsonb,   -- [{value, label}]
   seo_title     text not null default '',
   seo_description text not null default '',
+  og_image_url  text,                                -- social share card image
   -- Appearance, all editable from the CMS "Theme" tab.
   logo_url       text,
   favicon_url    text,
@@ -88,9 +89,10 @@ alter table public.site_settings add constraint site_settings_experience_layout_
   check (experience_layout in ('rows', 'timeline', 'cards'));
 
 alter table public.site_settings
-  add column if not exists logo_url    text,
-  add column if not exists favicon_url text,
-  add column if not exists logo_text   text not null default 'DJT';
+  add column if not exists logo_url     text,
+  add column if not exists favicon_url  text,
+  add column if not exists logo_text    text not null default 'DJT',
+  add column if not exists og_image_url text;
 
 alter table public.site_settings
   add column if not exists about_layout   text not null default 'sidebar',

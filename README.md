@@ -94,13 +94,47 @@ sign in and start editing.
 The `netlify.toml` redirect rule makes `/admin` and `/work/<slug>` survive a
 hard refresh. Without it those paths 404 on a static host.
 
+Netlify sets the `URL` environment variable automatically, which is all the
+SEO build step needs. To build with a custom domain elsewhere, set `SITE_URL`.
+
+---
+
+## SEO and link previews
+
+Social unfurlers — LinkedIn, Slack, X, Discord, iMessage — fetch your page and
+read the HTML **without executing JavaScript**. Anything the app sets at
+runtime is invisible to them.
+
+So [`plugins/seo.ts`](plugins/seo.ts) runs during `npm run build`: it reads
+your live content from Supabase and bakes into `index.html`
+
+- `<title>` and `<meta name="description">`
+- `og:title`, `og:description`, `og:image`, `og:url`
+- `twitter:card` (`summary_large_image` when an image exists, `summary` when
+  it doesn't — a large card with no image renders as an empty grey box)
+- `<link rel="canonical">` and your uploaded favicon
+
+then emits `sitemap.xml` covering `/` plus every **published** project, and a
+`robots.txt` pointing at it.
+
+**The share image** resolves in order: the one you upload under *Profile →
+SEO → Share image*, then your hero photo, then your portrait. 1200×630 JPG or
+PNG — most platforms reject SVG.
+
+> **The one thing in this CMS that isn't instant.** Everything else goes live
+> the moment you save. The SEO card is read at build time, so **redeploy after
+> changing it**. The admin panel says so on the card itself.
+
+The build never fails on this: if Supabase is unreachable or the env vars are
+missing, it warns and falls back to the static tags already in `index.html`.
+
 ---
 
 ## Using the CMS
 
 | Tab              | What you control                                                     |
 | ---------------- | -------------------------------------------------------------------- |
-| **Profile**      | Name, role, hero intro, about text, contact details, social links, the metrics strip, portrait, résumé PDF, and SEO tags |
+| **Profile**      | Name, role, hero intro, about text, contact details, social links, the metrics strip, portrait, résumé PDF, and SEO tags including the social share image |
 | **Projects**     | Add, reorder, publish, or unpublish projects. Each gets its own page at `/work/<slug>` |
 | **Experience**   | Your work history timeline                                           |
 | **Skills**       | Skill groups and their tags                                          |
@@ -172,9 +206,9 @@ actually selected an icon layout.
 
 > If you set the site up before these features existed, run the migrations in
 > [`supabase/migrations/`](supabase/migrations/) in order — `002-theme.sql`,
-> `003-section-layouts.sql`, `004-sections-and-palettes.sql`, `005-brand.sql` —
-> in the Supabase SQL editor. Each is safe to re-run, and the Theme tab tells
-> you if any are outstanding.
+> `003-section-layouts.sql`, `004-sections-and-palettes.sql`, `005-brand.sql`,
+> `006-share-image.sql` — in the Supabase SQL editor. Each is safe to re-run,
+> and the Theme tab tells you if any are outstanding.
 
 A few conventions worth knowing:
 

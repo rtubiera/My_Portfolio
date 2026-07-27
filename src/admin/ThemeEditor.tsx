@@ -632,7 +632,7 @@ export default function ThemeEditor({
           Your database is missing some theme columns. Open Supabase → SQL
           Editor and run the files in{' '}
           <code className="code">supabase/migrations/</code> in order (002
-          through 005), then reload this page. You can preview choices below,
+          through 006), then reload this page. You can preview choices below,
           but saving will fail until you do.
         </p>
       )}

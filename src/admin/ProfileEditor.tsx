@@ -229,6 +229,26 @@ export default function ProfileEditor({
             value={draft.seo_description}
             onChange={(v) => edit('seo_description', v)}
           />
+
+          <FileUpload
+            label="Share image"
+            hint="Shown when your link is pasted into LinkedIn, Slack or a message. 1200×630 JPG or PNG — not SVG, most platforms reject it. Falls back to your hero photo, then your portrait."
+            folder="social"
+            accept="image/jpeg,image/png,image/webp"
+            value={draft.og_image_url}
+            onChange={(path) => {
+              edit('og_image_url', path)
+              setState('dirty')
+            }}
+          />
+
+          <p className="notice notice--info">
+            Everything else in this CMS goes live the instant you save. These
+            SEO fields are the one exception: link previews are read by
+            crawlers that don't run JavaScript, so they're baked into the page
+            at build time. <strong>Redeploy on Netlify</strong> after changing
+            anything in this card.
+          </p>
         </div>
       </div>
 
