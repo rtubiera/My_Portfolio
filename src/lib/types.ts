@@ -1,8 +1,10 @@
 import type {
   AboutLayout,
+  BackgroundEffect,
   CertsLayout,
   ContactLayout,
   CustomPalette,
+  EffectIntensity,
   ExperienceLayout,
   FontPairId,
   HeroLayout,
@@ -11,7 +13,9 @@ import type {
   WorkLayout,
 } from './theme'
 
-export type { CustomPalette }
+import type { EffectSchedule, RotationMode } from './schedule'
+
+export type { CustomPalette, EffectSchedule, RotationMode }
 
 export type SocialLink = { label: string; url: string }
 export type Metric = { value: string; label: string }
@@ -51,6 +55,10 @@ export type SiteSettings = {
   about_layout: AboutLayout
   certs_layout: CertsLayout
   contact_layout: ContactLayout
+  background_effect: BackgroundEffect
+  effect_intensity: EffectIntensity
+  effect_rotation: RotationMode
+  rotation_pool: string[]
 }
 
 export type Project = {
@@ -118,6 +126,7 @@ export type PortfolioContent = {
   skills: SkillGroup[]
   certifications: Certification[]
   palettes: CustomPalette[]
+  schedules: EffectSchedule[]
 }
 
 /** Which table a given editor writes to. */
@@ -128,3 +137,4 @@ export type ContentTable =
   | 'skill_groups'
   | 'certifications'
   | 'theme_palettes'
+  | 'effect_schedules'

@@ -43,6 +43,10 @@ create table if not exists public.site_settings (
   about_layout      text not null default 'sidebar', -- sidebar | portrait | centered
   certs_layout      text not null default 'grid',    -- grid | list | badges
   contact_layout    text not null default 'split',   -- split | centered | cards
+  background_effect text not null default 'none',    -- none | snow | stars | constellation | aurora | confetti | hearts
+  effect_intensity  text not null default 'subtle',  -- subtle | medium | heavy
+  effect_rotation   text not null default 'off',     -- off | minute | hourly | daily | weekly | monthly
+  rotation_pool     text[] not null default '{}',    -- empty = every effect
   updated_at    timestamptz not null default now(),
   constraint site_settings_singleton check (id = 1)
 );
@@ -110,6 +114,71 @@ alter table public.site_settings add constraint site_settings_certs_layout_check
 alter table public.site_settings drop constraint if exists site_settings_contact_layout_check;
 alter table public.site_settings add constraint site_settings_contact_layout_check
   check (contact_layout in ('split', 'centered', 'cards'));
+
+alter table public.site_settings
+  add column if not exists background_effect text not null default 'none',
+  add column if not exists effect_intensity  text not null default 'subtle';
+
+alter table public.site_settings drop constraint if exists site_settings_background_effect_check;
+alter table public.site_settings add constraint site_settings_background_effect_check
+  check (background_effect in (
+    'none', 'snow', 'stars', 'constellation', 'aurora', 'confetti', 'hearts',
+    'bats', 'fireworks', 'leaves', 'petals', 'fireflies', 'matrix'));
+
+alter table public.site_settings drop constraint if exists site_settings_effect_intensity_check;
+alter table public.site_settings add constraint site_settings_effect_intensity_check
+  check (effect_intensity in ('subtle', 'medium', 'heavy'));
+
+alter table public.site_settings
+  add column if not exists effect_rotation text   not null default 'off',
+  add column if not exists rotation_pool   text[] not null default '{}';
+
+alter table public.site_settings drop constraint if exists site_settings_effect_rotation_check;
+alter table public.site_settings add constraint site_settings_effect_rotation_check
+  check (effect_rotation in
+    ('off', 'minute', 'hourly', 'daily', 'weekly', 'monthly'));
+
+-- Date-driven overrides for the background effect. See migrations/008 for the
+-- full rationale on the three recurrence kinds and wrap-around ranges.
+create table if not exists public.effect_schedules (
+  id          uuid primary key default gen_random_uuid(),
+  label       text not null default 'New schedule',
+  effect      text not null default 'snow',
+  intensity   text not null default 'medium',
+  recurrence  text not null default 'annual',
+  start_month int,
+  start_day   int,
+  end_month   int,
+  end_day     int,
+  start_date  date,
+  end_date    date,
+  priority    int not null default 0,
+  enabled     boolean not null default true,
+  sort_order  int not null default 0,
+  created_at  timestamptz not null default now(),
+  constraint effect_schedules_effect_check check (effect in
+    ('none', 'snow', 'stars', 'constellation', 'aurora', 'confetti', 'hearts',
+     'bats', 'fireworks', 'leaves', 'petals', 'fireflies', 'matrix')),
+  constraint effect_schedules_intensity_check check (intensity in
+    ('subtle', 'medium', 'heavy')),
+  constraint effect_schedules_recurrence_check check (recurrence in
+    ('annual', 'monthly', 'once')),
+  constraint effect_schedules_start_month_check check (start_month is null or start_month between 1 and 12),
+  constraint effect_schedules_end_month_check   check (end_month   is null or end_month   between 1 and 12),
+  constraint effect_schedules_start_day_check   check (start_day   is null or start_day   between 1 and 31),
+  constraint effect_schedules_end_day_check     check (end_day     is null or end_day     between 1 and 31)
+);
+
+alter table public.effect_schedules enable row level security;
+
+drop policy if exists "public read effect_schedules" on public.effect_schedules;
+create policy "public read effect_schedules"
+  on public.effect_schedules for select using (true);
+
+drop policy if exists "authenticated write effect_schedules" on public.effect_schedules;
+create policy "authenticated write effect_schedules"
+  on public.effect_schedules for all to authenticated
+  using (true) with check (true);
 
 -- Custom background palettes. See migrations/004 for the full rationale: a
 -- palette stores only a background and a text colour per mode, and the app

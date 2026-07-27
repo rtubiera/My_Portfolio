@@ -56,9 +56,14 @@ export const seedContent: PortfolioContent = {
     about_layout: 'sidebar',
     certs_layout: 'grid',
     contact_layout: 'split',
+    background_effect: 'none',
+    effect_intensity: 'subtle',
+    effect_rotation: 'off',
+    rotation_pool: [],
   },
 
   palettes: [],
+  schedules: [],
 
   projects: [
     {

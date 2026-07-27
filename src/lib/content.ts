@@ -3,6 +3,7 @@ import { seedContent } from './seed'
 import type {
   Certification,
   CustomPalette,
+  EffectSchedule,
   Experience,
   PortfolioContent,
   Project,
@@ -25,8 +26,15 @@ export async function fetchPortfolio(): Promise<{
   }
 
   try {
-    const [settings, projects, experiences, skills, certifications, palettes] =
-      await Promise.all([
+    const [
+      settings,
+      projects,
+      experiences,
+      skills,
+      certifications,
+      palettes,
+      schedules,
+    ] = await Promise.all([
         supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
         supabase
           .from('projects')
@@ -50,6 +58,12 @@ export async function fetchPortfolio(): Promise<{
         // treated as a content failure — the site just uses a built-in preset.
         supabase
           .from('theme_palettes')
+          .select('*')
+          .order('sort_order', { ascending: true }),
+        // Likewise missing until migration 008 — the effect just stays on
+        // whatever the default is.
+        supabase
+          .from('effect_schedules')
           .select('*')
           .order('sort_order', { ascending: true }),
       ])
@@ -78,6 +92,7 @@ export async function fetchPortfolio(): Promise<{
           (certifications.data as Certification[] | null) ??
           seedContent.certifications,
         palettes: (palettes.data as CustomPalette[] | null) ?? [],
+        schedules: (schedules.data as EffectSchedule[] | null) ?? [],
       },
       live: true,
       error: firstError?.message ?? null,
@@ -95,15 +110,23 @@ export async function fetchPortfolio(): Promise<{
 export async function fetchPortfolioForAdmin(): Promise<PortfolioContent> {
   if (!supabase) return seedContent
 
-  const [settings, projects, experiences, skills, certifications, palettes] =
-    await Promise.all([
-      supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
-      supabase.from('projects').select('*').order('sort_order'),
-      supabase.from('experiences').select('*').order('sort_order'),
-      supabase.from('skill_groups').select('*').order('sort_order'),
-      supabase.from('certifications').select('*').order('sort_order'),
-      supabase.from('theme_palettes').select('*').order('sort_order'),
-    ])
+  const [
+    settings,
+    projects,
+    experiences,
+    skills,
+    certifications,
+    palettes,
+    schedules,
+  ] = await Promise.all([
+    supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
+    supabase.from('projects').select('*').order('sort_order'),
+    supabase.from('experiences').select('*').order('sort_order'),
+    supabase.from('skill_groups').select('*').order('sort_order'),
+    supabase.from('certifications').select('*').order('sort_order'),
+    supabase.from('theme_palettes').select('*').order('sort_order'),
+    supabase.from('effect_schedules').select('*').order('sort_order'),
+  ])
 
   return {
     settings: (settings.data as SiteSettings | null) ?? seedContent.settings,
@@ -112,6 +135,7 @@ export async function fetchPortfolioForAdmin(): Promise<PortfolioContent> {
     skills: (skills.data as SkillGroup[] | null) ?? [],
     certifications: (certifications.data as Certification[] | null) ?? [],
     palettes: (palettes.data as CustomPalette[] | null) ?? [],
+    schedules: (schedules.data as EffectSchedule[] | null) ?? [],
   }
 }
 

@@ -180,8 +180,10 @@ export default function Admin({ theme, onToggleTheme }: Props) {
           <ThemeEditor
             settings={content.settings}
             palettes={content.palettes}
+            schedules={content.schedules}
             onSaved={reload}
             onPalettesChanged={reload}
+            onSchedulesChanged={reload}
           />
         )}
         {tab === 'projects' && (

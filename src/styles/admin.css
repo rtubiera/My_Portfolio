@@ -535,6 +535,330 @@
   max-width: 12rem;
 }
 
+/* -- Background effect previews ------------------------------------------- */
+
+/* Looping CSS miniatures of each effect. Deliberately not the real canvas —
+   five live canvases in a picker would cost more than the page itself. */
+.fx-preview {
+  position: relative;
+  display: block;
+  height: 62px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.fx-preview i {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--tint, var(--ink));
+}
+
+.fx-preview--none {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  color: var(--ink-faint);
+}
+
+.fx-preview--fall i {
+  width: 3px;
+  height: 3px;
+  opacity: 0.65;
+  left: calc(var(--i) * 7.1% + 2%);
+  animation: fx-fall 3.2s linear infinite;
+  animation-delay: calc(var(--i) * -0.23s);
+}
+
+@keyframes fx-fall {
+  from {
+    transform: translateY(-8px);
+  }
+  to {
+    transform: translateY(70px);
+  }
+}
+
+.fx-preview--rise i {
+  width: 4px;
+  height: 4px;
+  opacity: 0.65;
+  left: calc(var(--i) * 11% + 4%);
+  animation: fx-rise 3.4s linear infinite;
+  animation-delay: calc(var(--i) * -0.36s);
+}
+
+@keyframes fx-rise {
+  from {
+    transform: translateY(70px);
+  }
+  to {
+    transform: translateY(-8px);
+  }
+}
+
+.fx-preview--twinkle i {
+  width: 2.5px;
+  height: 2.5px;
+  left: calc(var(--i) * 6.9% + 3%);
+  animation: fx-twinkle 2.4s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -0.17s);
+}
+
+/* Vertical scatter via nth-child buckets. calc() has no modulo operator, so
+   a repeating cycle has to be spelled out rather than computed from --i. */
+.fx-preview--twinkle i:nth-child(5n + 1) {
+  top: 10px;
+}
+.fx-preview--twinkle i:nth-child(5n + 2) {
+  top: 34px;
+}
+.fx-preview--twinkle i:nth-child(5n + 3) {
+  top: 20px;
+}
+.fx-preview--twinkle i:nth-child(5n + 4) {
+  top: 46px;
+}
+.fx-preview--twinkle i:nth-child(5n + 5) {
+  top: 27px;
+}
+
+@keyframes fx-twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.fx-preview--web {
+  background:
+    linear-gradient(
+        to right,
+        transparent 46%,
+        var(--tint, var(--accent)) 46%,
+        var(--tint, var(--accent)) 54%,
+        transparent 54%
+      )
+      no-repeat center / 70% 1px,
+    var(--bg);
+}
+
+.fx-preview--web i {
+  width: 4px;
+  height: 4px;
+  background: var(--tint, var(--accent));
+  left: calc(var(--i) * 15% + 8%);
+  animation: fx-float 4s ease-in-out infinite alternate;
+  animation-delay: calc(var(--i) * -0.4s);
+}
+
+.fx-preview--web i:nth-child(3n + 1) {
+  top: 16px;
+}
+.fx-preview--web i:nth-child(3n + 2) {
+  top: 38px;
+}
+.fx-preview--web i:nth-child(3n + 3) {
+  top: 26px;
+}
+
+@keyframes fx-float {
+  to {
+    transform: translate(6px, -8px);
+  }
+}
+
+.fx-preview--aurora i {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  filter: blur(14px);
+  opacity: 0.5;
+  background: var(--accent);
+}
+
+.fx-preview--aurora i:nth-child(1) {
+  left: 8px;
+  top: -6px;
+  animation: fx-drift-a 6s ease-in-out infinite alternate;
+}
+
+.fx-preview--aurora i:nth-child(2) {
+  right: 10px;
+  bottom: -10px;
+  background: var(--ink);
+  opacity: 0.16;
+  animation: fx-drift-b 7s ease-in-out infinite alternate;
+}
+
+@keyframes fx-drift-a {
+  to {
+    transform: translate(28px, 14px) scale(1.2);
+  }
+}
+
+@keyframes fx-drift-b {
+  to {
+    transform: translate(-24px, -12px) scale(1.15);
+  }
+}
+
+.choice[data-selected='true'] .fx-preview {
+  border-color: var(--accent-line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-preview i {
+    animation: none !important;
+  }
+}
+
+/* -- Segmented control ---------------------------------------------------- */
+
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-inset);
+}
+
+.seg__btn {
+  padding: 0.42em 0.9em;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--dur) var(--ease),
+    color var(--dur) var(--ease);
+}
+
+.seg__btn:hover {
+  color: var(--ink);
+}
+
+.seg__btn[data-selected='true'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+/* -- Rotation pool -------------------------------------------------------- */
+
+.pool-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.pool-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4em 0.75em;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  background: var(--bg-inset);
+  color: var(--ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--step--2);
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+}
+
+.pool-chip:hover {
+  color: var(--ink);
+}
+
+.pool-chip[data-selected='true'] {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* -- Effect schedules ----------------------------------------------------- */
+
+.sched-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-s);
+  padding: var(--space-s) var(--space-m);
+  margin-bottom: var(--space-s);
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+}
+
+.sched-status__value {
+  margin-top: 0.25rem;
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.sched-status__value strong {
+  color: var(--accent);
+  text-transform: capitalize;
+}
+
+.sched-status__test {
+  flex-shrink: 0;
+}
+
+.sched {
+  padding: var(--space-m);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  border-left-width: 2px;
+  border-left-color: var(--line);
+}
+
+.sched + .sched {
+  margin-top: var(--space-2xs);
+}
+
+.sched[data-active='true'] {
+  border-left-color: var(--accent);
+}
+
+.sched__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-s);
+  margin-bottom: var(--space-s);
+  padding-bottom: var(--space-s);
+  border-bottom: 1px solid var(--line);
+}
+
+.sched__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  font-size: var(--step--1);
+}
+
+.date-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 0.35rem;
+}
+
 /* -- Brand preview -------------------------------------------------------- */
 
 .brand-preview {

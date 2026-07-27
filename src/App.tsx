@@ -6,11 +6,13 @@ import {
   useLocation,
   useMatch,
 } from 'react-router-dom'
+import BackgroundEffect from './components/BackgroundEffect'
 import Footer from './components/Footer'
 import Nav from './components/Nav'
 import { fetchPortfolio } from './lib/content'
 import { useTheme } from './lib/hooks'
 import { seedContent } from './lib/seed'
+import { resolveScheduledEffect, rotationTickMs } from './lib/schedule'
 import { mediaUrl } from './lib/supabase'
 import { applyFavicon, applyTheme } from './lib/theme'
 import type { PortfolioContent } from './lib/types'
@@ -51,6 +53,9 @@ function Shell() {
   const { theme, toggle } = useTheme()
   const [content, setContent] = useState<PortfolioContent>(seedContent)
   const [loading, setLoading] = useState(true)
+  // Re-evaluated periodically so a tab left open overnight picks up a
+  // schedule that starts at midnight.
+  const [now, setNow] = useState(() => new Date())
   // Both hooks must run unconditionally — never short-circuit these.
   const adminSplat = useMatch('/admin/*')
   const adminExact = useMatch('/admin')
@@ -77,6 +82,15 @@ function Shell() {
     applyTheme(content.settings, content.palettes)
   }, [content.settings, content.palettes, theme])
 
+  // Poll rate follows the rotation mode: 15 minutes is plenty for calendar-day
+  // rules, but the per-minute test mode needs a far tighter check to be
+  // visible at all.
+  const tickMs = rotationTickMs(content.settings.effect_rotation)
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), tickMs)
+    return () => window.clearInterval(id)
+  }, [tickMs])
+
   useEffect(() => {
     applyFavicon(
       content.settings.favicon_url
@@ -100,6 +114,15 @@ function Shell() {
 
   if (loading) return <PageLoading />
 
+  const activeEffect = resolveScheduledEffect({
+    defaultEffect: content.settings.background_effect,
+    defaultIntensity: content.settings.effect_intensity,
+    schedules: content.schedules,
+    rotation: content.settings.effect_rotation,
+    rotationPool: content.settings.rotation_pool,
+    now,
+  })
+
   const navProps = {
     theme,
     onToggleTheme: toggle,
@@ -115,6 +138,13 @@ function Shell() {
       <a className="skip-link" href="#main">
         Skip to content
       </a>
+      {/* Outside <Routes> so the animation isn't torn down and reseeded
+          every time the visitor opens a project page. */}
+      <BackgroundEffect
+        effect={activeEffect.effect}
+        intensity={activeEffect.intensity}
+        theme={theme}
+      />
       <HashScroll />
       <Routes>
         <Route

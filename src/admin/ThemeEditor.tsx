@@ -4,12 +4,15 @@ import { supabase } from '../lib/supabase'
 import {
   ACCENTS,
   DEFAULT_THEME,
+  EFFECT_META,
   FONT_PAIRS,
   PRESETS,
   applyFavicon,
   applyTheme,
   type AboutLayout,
+  type BackgroundEffect,
   type CertsLayout,
+  type EffectIntensity,
   type ContactLayout,
   type CustomPalette,
   type ExperienceLayout,
@@ -19,9 +22,15 @@ import {
   type SkillsLayout,
   type WorkLayout,
 } from '../lib/theme'
+import {
+  ROTATABLE_EFFECTS,
+  type EffectSchedule,
+  type RotationMode,
+} from '../lib/schedule'
 import { mediaUrl } from '../lib/supabase'
 import type { SiteSettings } from '../lib/types'
 import PaletteManager from './PaletteManager'
+import ScheduleManager from './ScheduleManager'
 import { FileUpload, SaveBar, TextField, type SaveState } from './ui'
 
 const LAYOUTS: {
@@ -171,6 +180,102 @@ const CONTACT_LAYOUTS: {
     description: 'Contact details in tiles above a panelled form.',
   },
 ]
+
+const EFFECTS = (Object.keys(EFFECT_META) as BackgroundEffect[]).map((id) => ({
+  id,
+  ...EFFECT_META[id],
+}))
+
+const ROTATIONS: { id: RotationMode; label: string; title?: string }[] = [
+  { id: 'off', label: 'Off' },
+  {
+    id: 'minute',
+    label: 'Minute',
+    title: 'Testing aid — changes every 60 seconds',
+  },
+  { id: 'hourly', label: 'Hourly' },
+  { id: 'daily', label: 'Daily' },
+  { id: 'weekly', label: 'Weekly' },
+  { id: 'monthly', label: 'Monthly' },
+]
+
+const INTENSITIES: { id: EffectIntensity; label: string }[] = [
+  { id: 'subtle', label: 'Subtle' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'heavy', label: 'Heavy' },
+]
+
+/**
+ * Small looping CSS previews so each effect is recognisable before applying.
+ * Effects are grouped into a handful of motion families rather than each
+ * getting a bespoke miniature — thirteen live canvases in a picker would cost
+ * more than the page they preview.
+ */
+type PreviewFamily = 'none' | 'aurora' | 'fall' | 'rise' | 'twinkle' | 'web'
+
+const PREVIEW_FAMILY: Record<BackgroundEffect, PreviewFamily> = {
+  none: 'none',
+  aurora: 'aurora',
+  snow: 'fall',
+  confetti: 'fall',
+  leaves: 'fall',
+  petals: 'fall',
+  matrix: 'fall',
+  hearts: 'rise',
+  fireflies: 'rise',
+  stars: 'twinkle',
+  fireworks: 'twinkle',
+  constellation: 'web',
+  bats: 'web',
+}
+
+/** Preview tint per effect; unset means "use the accent colour". */
+const PREVIEW_TINT: Partial<Record<BackgroundEffect, string>> = {
+  snow: 'var(--ink)',
+  stars: 'var(--ink)',
+  bats: 'var(--ink)',
+  leaves: '#d98324',
+  petals: '#efa9bf',
+  confetti: '#4c8dff',
+  fireworks: '#ffd166',
+  fireflies: '#ffe282',
+  matrix: '#3ecf8e',
+}
+
+function EffectPreview({ id }: { id: BackgroundEffect }) {
+  const family = PREVIEW_FAMILY[id]
+  const tint = PREVIEW_TINT[id] ?? 'var(--accent)'
+
+  if (family === 'none') {
+    return (
+      <span className="fx-preview fx-preview--none" aria-hidden="true">
+        —
+      </span>
+    )
+  }
+
+  if (family === 'aurora') {
+    return (
+      <span className="fx-preview fx-preview--aurora" aria-hidden="true">
+        <i />
+        <i />
+      </span>
+    )
+  }
+
+  const dots = family === 'web' ? 6 : family === 'rise' ? 9 : 14
+  return (
+    <span
+      className={`fx-preview fx-preview--${family}`}
+      style={{ '--tint': tint } as React.CSSProperties}
+      aria-hidden="true"
+    >
+      {Array.from({ length: dots }, (_, i) => (
+        <i key={i} style={{ '--i': i } as React.CSSProperties} />
+      ))}
+    </span>
+  )
+}
 
 /** Miniature wireframe of each hero layout, drawn in CSS-less SVG. */
 function LayoutPreview({ id }: { id: HeroLayout }) {
@@ -495,9 +600,12 @@ function ExperienceCardsPreview() {
 type Props = {
   settings: SiteSettings
   palettes: CustomPalette[]
+  schedules: EffectSchedule[]
   onSaved: () => void
   /** Refetch after a palette is created, edited or deleted. */
   onPalettesChanged: () => void
+  /** Refetch after a schedule is created, edited or deleted. */
+  onSchedulesChanged: () => void
 }
 
 type Draft = {
@@ -515,6 +623,10 @@ type Draft = {
   about_layout: AboutLayout
   certs_layout: CertsLayout
   contact_layout: ContactLayout
+  background_effect: BackgroundEffect
+  effect_intensity: EffectIntensity
+  effect_rotation: RotationMode
+  rotation_pool: string[]
 }
 
 /** Reads the appearance slice off settings, filling gaps with the defaults. */
@@ -534,14 +646,20 @@ function toDraft(settings: SiteSettings): Draft {
     about_layout: settings.about_layout ?? 'sidebar',
     certs_layout: settings.certs_layout ?? 'grid',
     contact_layout: settings.contact_layout ?? 'split',
+    background_effect: settings.background_effect ?? 'none',
+    effect_intensity: settings.effect_intensity ?? 'subtle',
+    effect_rotation: settings.effect_rotation ?? 'off',
+    rotation_pool: settings.rotation_pool ?? [],
   }
 }
 
 export default function ThemeEditor({
   settings,
   palettes,
+  schedules,
   onSaved,
   onPalettesChanged,
+  onSchedulesChanged,
 }: Props) {
   const [draft, setDraft] = useState<Draft>(() => toDraft(settings))
   const [state, setState] = useState<SaveState>('clean')
@@ -613,7 +731,8 @@ export default function ThemeEditor({
     settings.theme_preset === undefined ||
     settings.work_layout === undefined ||
     settings.about_layout === undefined ||
-    settings.logo_text === undefined
+    settings.logo_text === undefined ||
+    settings.background_effect === undefined
 
   return (
     <>
@@ -632,7 +751,7 @@ export default function ThemeEditor({
           Your database is missing some theme columns. Open Supabase → SQL
           Editor and run the files in{' '}
           <code className="code">supabase/migrations/</code> in order (002
-          through 006), then reload this page. You can preview choices below,
+          through 011), then reload this page. You can preview choices below,
           but saving will fail until you do.
         </p>
       )}
@@ -923,6 +1042,163 @@ export default function ThemeEditor({
               <span className="choice__desc">{option.description}</span>
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* -- Background effect ---------------------------------------------- */}
+      <div className="card">
+        <div className="card__head">
+          <h2 className="card__title">Background effect</h2>
+        </div>
+
+        <div className="choice-grid">
+          {EFFECTS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className="choice"
+              data-selected={draft.background_effect === option.id}
+              onClick={() => edit({ background_effect: option.id })}
+            >
+              <EffectPreview id={option.id} />
+              <span className="choice__label">
+                {option.label}
+                {draft.background_effect === option.id && <Check size={13} />}
+              </span>
+              <span className="choice__desc">{option.description}</span>
+            </button>
+          ))}
+        </div>
+
+        {draft.background_effect !== 'none' && (
+          <>
+            <div className="field" style={{ marginTop: 'var(--space-m)' }}>
+              <span className="field__label">Intensity</span>
+              <div className="seg">
+                {INTENSITIES.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className="seg__btn"
+                    data-selected={draft.effect_intensity === option.id}
+                    onClick={() => edit({ effect_intensity: option.id })}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <p className="notice notice--info" style={{ marginTop: 'var(--space-2xs)' }}>
+              The effect is switched off automatically for visitors whose
+              system asks for reduced motion, and it pauses while the tab is
+              in the background. Subtle is the safest choice — it should be
+              noticed, not read.
+            </p>
+          </>
+        )}
+
+        <div className="palette-section">
+          <h3 className="mono">Rotation</h3>
+          <p
+            className="field__hint"
+            style={{ marginBottom: 'var(--space-2xs)' }}
+          >
+            Change the effect automatically, with no dates to set. Every
+            visitor sees the same effect on a given day, and it never repeats
+            two periods running.
+          </p>
+
+          <div className="seg">
+            {ROTATIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className="seg__btn"
+                data-selected={draft.effect_rotation === option.id}
+                onClick={() => edit({ effect_rotation: option.id })}
+                title={option.title}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          {draft.effect_rotation === 'minute' && (
+            <p
+              className="notice notice--error"
+              style={{ marginTop: 'var(--space-2xs)' }}
+            >
+              <strong>Testing only.</strong> The effect changes every 60
+              seconds, which is far too busy for real visitors — open the site
+              in another tab, watch it cycle, then switch back to Daily before
+              you deploy.
+            </p>
+          )}
+
+          {draft.effect_rotation !== 'off' && (
+            <div className="field" style={{ marginTop: 'var(--space-s)' }}>
+              <span className="field__label">Pick from</span>
+              <div className="pool-grid">
+                {ROTATABLE_EFFECTS.map((id) => {
+                  const chosen =
+                    draft.rotation_pool.length === 0 ||
+                    draft.rotation_pool.includes(id)
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      className="pool-chip"
+                      data-selected={chosen}
+                      onClick={() => {
+                        // An empty pool means "all", so the first click has to
+                        // expand it to the full list before removing anything.
+                        const current =
+                          draft.rotation_pool.length === 0
+                            ? [...ROTATABLE_EFFECTS]
+                            : draft.rotation_pool
+                        const next = current.includes(id)
+                          ? current.filter((e) => e !== id)
+                          : [...current, id]
+                        edit({ rotation_pool: next })
+                      }}
+                    >
+                      {chosen && <Check size={12} />}
+                      {id}
+                    </button>
+                  )
+                })}
+              </div>
+              <span className="field__hint">
+                {draft.rotation_pool.length === 0
+                  ? 'All effects are in play.'
+                  : draft.rotation_pool.length === 1
+                    ? 'Only one effect selected — it will show every day.'
+                    : `${draft.rotation_pool.length} effects in rotation.`}{' '}
+                Dated schedules below still override this.
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="palette-section">
+          <h3 className="mono">Schedules</h3>
+          <p
+            className="field__hint"
+            style={{ marginBottom: 'var(--space-2xs)' }}
+          >
+            Override the effect above on chosen dates — snow over Christmas,
+            confetti on your birthday. Dates follow each visitor's own
+            calendar, so 25 December is 25 December wherever they are.
+          </p>
+          <ScheduleManager
+            schedules={schedules}
+            defaultEffect={draft.background_effect}
+            defaultIntensity={draft.effect_intensity}
+            rotation={draft.effect_rotation}
+            rotationPool={draft.rotation_pool}
+            onChanged={onSchedulesChanged}
+          />
         </div>
       </div>
 

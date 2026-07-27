@@ -14,6 +14,21 @@ export type ExperienceLayout = 'rows' | 'timeline' | 'cards'
 export type AboutLayout = 'sidebar' | 'portrait' | 'centered'
 export type CertsLayout = 'grid' | 'list' | 'badges'
 export type ContactLayout = 'split' | 'centered' | 'cards'
+export type BackgroundEffect =
+  | 'none'
+  | 'snow'
+  | 'stars'
+  | 'constellation'
+  | 'aurora'
+  | 'confetti'
+  | 'hearts'
+  | 'bats'
+  | 'fireworks'
+  | 'leaves'
+  | 'petals'
+  | 'fireflies'
+  | 'matrix'
+export type EffectIntensity = 'subtle' | 'medium' | 'heavy'
 export type PresetId = 'obsidian' | 'midnight' | 'slate' | 'espresso'
 export type FontPairId = 'inter' | 'sora' | 'space' | 'outfit' | 'serif'
 
@@ -505,6 +520,95 @@ export function resolveCertsLayout(id: string | undefined): CertsLayout {
 
 export function resolveContactLayout(id: string | undefined): ContactLayout {
   return id === 'centered' || id === 'cards' ? id : 'split'
+}
+
+// Keep in step with the effect_schedules / site_settings check constraints
+// in supabase/schema.sql — an id accepted there but missing here silently
+// degrades to 'none'.
+const EFFECT_IDS: BackgroundEffect[] = [
+  'none',
+  'snow',
+  'stars',
+  'constellation',
+  'aurora',
+  'confetti',
+  'hearts',
+  'bats',
+  'fireworks',
+  'leaves',
+  'petals',
+  'fireflies',
+  'matrix',
+]
+
+/** Label and one-line description for every effect, shared by the pickers. */
+export const EFFECT_META: Record<
+  BackgroundEffect,
+  { label: string; description: string }
+> = {
+  none: { label: 'None', description: 'No animation.' },
+  snow: { label: 'Snow', description: 'Drifting flakes. Christmas, winter.' },
+  stars: { label: 'Stars', description: 'A still field that slowly twinkles.' },
+  constellation: {
+    label: 'Constellation',
+    description: 'Drifting nodes joined by accent-coloured lines.',
+  },
+  aurora: {
+    label: 'Aurora',
+    description: 'Slow accent glow behind the content.',
+  },
+  confetti: {
+    label: 'Confetti',
+    description: 'Tumbling colour. Birthdays, launches.',
+  },
+  hearts: {
+    label: 'Hearts',
+    description: 'Rising hearts in your accent. Valentine’s.',
+  },
+  bats: {
+    label: 'Bats',
+    description: 'Silhouettes flapping across. Halloween.',
+  },
+  fireworks: {
+    label: 'Fireworks',
+    description: 'Bursts with gravity and fade. New Year.',
+  },
+  leaves: {
+    label: 'Falling leaves',
+    description: 'Autumn colours swinging down.',
+  },
+  petals: {
+    label: 'Petals',
+    description: 'Blossom drifting slowly. Spring.',
+  },
+  fireflies: {
+    label: 'Fireflies',
+    description: 'Wandering warm glows. Summer evenings.',
+  },
+  matrix: {
+    label: 'Code rain',
+    description: 'Falling glyph columns. Very developer.',
+  },
+}
+
+export function resolveEffect(id: string | undefined): BackgroundEffect {
+  return EFFECT_IDS.includes(id as BackgroundEffect)
+    ? (id as BackgroundEffect)
+    : 'none'
+}
+
+export function resolveIntensity(id: string | undefined): EffectIntensity {
+  return id === 'medium' || id === 'heavy' ? id : 'subtle'
+}
+
+/** Multiplies particle count and opacity. Kept low — this is background. */
+export const INTENSITY_SCALE: Record<
+  EffectIntensity,
+  { density: number; opacity: number }
+> = {
+  subtle: { density: 0.55, opacity: 0.5 },
+  medium: { density: 1, opacity: 0.75 },
+  heavy: { density: 1.7, opacity: 1 },
 }
 
 function paletteVars(p: Palette): string {

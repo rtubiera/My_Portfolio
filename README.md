@@ -154,6 +154,7 @@ missing, it warns and falls back to the static tags already in `index.html`.
 | **About section** | **Sidebar** (prose + fact card), **Portrait** (tall photo beside prose), **Centered** (round avatar, centred prose) |
 | **Certifications** | **Grid** (bordered cards), **List** (hairline rows), **Badges** (pills with an accent seal) |
 | **Contact section** | **Split** (pitch left, form right), **Centered** (narrow column), **Cards** (detail tiles above a panelled form) |
+| **Background effect** | Twelve effects — plus intensity, automatic **rotation**, and date **schedules** with one-click holiday presets |
 | **Background** | Obsidian, Midnight, Slate, Espresso — each ships a matched dark *and* light palette — **plus any palettes you build yourself** |
 | **Accent** | Eight swatches plus a custom hex picker. The light theme automatically gets a darkened version so it stays readable on a pale background |
 | **Typography** | Inter, Sora, Space Grotesk, Outfit, or Instrument Serif — loaded from Google Fonts on demand |
@@ -176,6 +177,103 @@ CMS tab's own icon immediately so you can judge it at real size. Note that the
 favicon is applied after content loads, so a hard refresh briefly shows the
 bundled default before yours appears — unavoidable without server rendering,
 and invisible on subsequent visits once cached.
+
+**Background effects.** Theme → Background effect adds ambient animation.
+Intensity scales both particle count and opacity.
+
+| Effect | Reads as |
+| --- | --- |
+| **Snow** | Christmas, winter |
+| **Hearts** | Valentine's |
+| **Bats** | Halloween |
+| **Fireworks** | New Year, celebrations |
+| **Confetti** | Birthdays, launches |
+| **Falling leaves** | Autumn |
+| **Petals** | Spring |
+| **Fireflies** | Summer evenings |
+| **Code rain** | Developer flavour |
+| **Stars**, **Constellation**, **Aurora** | Year-round ambience |
+
+All are canvas particle layers except **Aurora**, which is a slow accent
+glow. Each renderer lives in
+[`src/lib/effectRenderers.ts`](src/lib/effectRenderers.ts) as a factory that
+holds its own state — that is what lets fireworks manage bursts and code rain
+manage columns without the simpler effects carrying fields they never use.
+
+Snow, stars and constellation render *in front* of the page — like real snow,
+between you and what you're looking at — at low opacity and below the nav.
+Aurora renders behind, since a colour wash over body text would hurt
+legibility. Colours come from the live theme tokens, so effects follow your
+accent and flip with light/dark.
+
+Four things keep it from being a liability:
+
+- `prefers-reduced-motion` disables it outright. Drifting particles are a
+  known vestibular trigger, so it is removed rather than merely slowed.
+- The animation loop stops when the tab is hidden — a backgrounded portfolio
+  should not drain a laptop battery.
+- Particle counts scale with viewport area and are hard-capped, so a 4K
+  display gets 320 flakes rather than several thousand.
+- Device pixel ratio is capped at 2; beyond that the cost buys no visible
+  sharpness on soft particles.
+
+**Rotation.** Theme → Background effect → *Rotation* changes the effect
+automatically — **minute**, **hourly**, **daily**, **weekly**, or **monthly** —
+with no dates to set. Tick which effects are eligible; leaving all of them
+ticked uses the lot.
+
+> **Minute** is a testing aid, not a setting to ship. It cycles every 60
+> seconds so you can confirm rotation works without waiting a day; the admin
+> panel warns you while it is selected. Switch back to Daily before deploying.
+
+The app's re-check interval follows the mode — 15 minutes for calendar rules,
+5 seconds on minute mode — so a fast rotation is actually visible rather than
+silently correct.
+
+The pick is **deterministic from the date**, not `Math.random()`. That matters:
+every visitor on a given day sees the same effect, and it does not change as
+someone clicks between pages. Weeks break on Monday.
+
+Rather than hashing each day independently — which clusters, and can repeat
+back-to-back — days are grouped into blocks the size of the pool, and each
+block is a seeded shuffle of it. So every effect appears **exactly once per
+block**, and the one place a repeat could occur, across a block boundary, is
+detected and swapped away. Measured over a year with six effects: 0 repeats,
+and a 60–61 split across all six.
+
+**Scheduled effects.** Under Theme → Background effect → *Schedules*, a rule
+overrides the default effect for a window of the calendar. Three kinds:
+
+| Repeats | Uses | Example |
+| --- | --- | --- |
+| **Every year** | month + day → month + day | 25 Dec, or 25–30 Dec |
+| **Every month** | day → day | the 1st to the 3rd |
+| **One time** | date → date | a launch week, never repeating |
+
+**Add holiday presets** creates six annual rules in one click — New Year
+(fireworks), Valentine's (hearts), Spring (petals), Autumn (leaves), Halloween
+(bats), Christmas (snow). Pressing it twice adds nothing, since it skips
+labels that already exist. They are a starting point, not a definitive
+calendar: holidays vary by country and belief, and every date, effect and
+intensity stays editable.
+
+Ranges may wrap: **28 Dec → 3 Jan** is valid, as is a monthly 28 → 3. When two
+rules overlap, the higher **priority** wins (ties break on order, then name,
+so the winner never depends on row order coming back from the database).
+
+Dates are evaluated in each **visitor's** local timezone — someone in Manila
+and someone in Berlin both see snow on the day their own calendar says 25
+December. A tab left open overnight re-checks every 15 minutes, so a schedule
+starting at midnight appears without a refresh.
+
+The panel shows what is rendering right now and which rule caused it, plus a
+**Preview a date** field so you can check a birthday rule in July.
+
+Two behaviours worth stating outright, because both are deliberate:
+
+- A **29 Feb** annual rule fires only in leap years — it does not roll over to
+  1 March.
+- A **monthly day 31** rule simply never matches in short months.
 
 **Custom palettes.** Under Theme → Background → *Your palettes*, **New
 palette** creates one you can name, edit, and delete. You pick only **two
@@ -207,8 +305,11 @@ actually selected an icon layout.
 > If you set the site up before these features existed, run the migrations in
 > [`supabase/migrations/`](supabase/migrations/) in order — `002-theme.sql`,
 > `003-section-layouts.sql`, `004-sections-and-palettes.sql`, `005-brand.sql`,
-> `006-share-image.sql` — in the Supabase SQL editor. Each is safe to re-run,
-> and the Theme tab tells you if any are outstanding.
+> `006-share-image.sql`, `007-background-effect.sql`,
+> `008-effect-schedules.sql`, `009-effect-rotation.sql`,
+> `010-holiday-effects.sql`, `011-rotation-fast-modes.sql` — in the Supabase
+> SQL editor. Each is safe to re-run, and the Theme tab tells you if any are
+> outstanding.
 
 A few conventions worth knowing:
 
