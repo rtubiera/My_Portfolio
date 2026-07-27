@@ -28,13 +28,11 @@
     <script>
       ;(function () {
         try {
-          var stored = localStorage.getItem('portfolio-theme')
-          var theme =
-            stored === 'dark' || stored === 'light'
-              ? stored
-              : window.matchMedia('(prefers-color-scheme: light)').matches
-                ? 'light'
-                : 'dark'
+          // Dark is the default. The visitor's OS preference is deliberately
+          // ignored — only an explicit click on the toggle changes it, and
+          // that choice is remembered here.
+          var stored = localStorage.getItem('portfolio-theme-v2')
+          var theme = stored === 'dark' || stored === 'light' ? stored : 'dark'
           document.documentElement.dataset.theme = theme
           if (theme === 'light') {
             document

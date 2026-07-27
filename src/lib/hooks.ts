@@ -1,14 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 type Theme = 'dark' | 'light'
-const THEME_KEY = 'portfolio-theme'
+// Bumped from 'portfolio-theme' when dark became the default. The old key may
+// still hold 'light' in a browser that visited before the change, which would
+// silently override the new default forever — a fresh key sidesteps that.
+const THEME_KEY = 'portfolio-theme-v2'
 
+/**
+ * Dark unless the visitor has explicitly chosen light on this device.
+ *
+ * The OS `prefers-color-scheme` setting is intentionally not consulted: the
+ * site has a deliberate dark identity, and only a click on the toggle should
+ * move away from it. Keep this in step with the pre-paint script in
+ * index.html — if the two disagree, the page flashes on load.
+ */
 function readInitialTheme(): Theme {
   const stored = localStorage.getItem(THEME_KEY)
   if (stored === 'dark' || stored === 'light') return stored
-  return window.matchMedia('(prefers-color-scheme: light)').matches
-    ? 'light'
-    : 'dark'
+  return 'dark'
 }
 
 export function useTheme() {
