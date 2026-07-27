@@ -42,6 +42,14 @@
   color: var(--accent);
 }
 
+/* Height-constrained so any aspect ratio sits correctly in the 62px bar. */
+.nav__logo {
+  height: 24px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+}
+
 .nav__links {
   display: flex;
   align-items: center;

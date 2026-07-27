@@ -6,6 +6,7 @@ import {
   DEFAULT_THEME,
   FONT_PAIRS,
   PRESETS,
+  applyFavicon,
   applyTheme,
   type AboutLayout,
   type CertsLayout,
@@ -18,9 +19,10 @@ import {
   type SkillsLayout,
   type WorkLayout,
 } from '../lib/theme'
+import { mediaUrl } from '../lib/supabase'
 import type { SiteSettings } from '../lib/types'
 import PaletteManager from './PaletteManager'
-import { FileUpload, SaveBar, type SaveState } from './ui'
+import { FileUpload, SaveBar, TextField, type SaveState } from './ui'
 
 const LAYOUTS: {
   id: HeroLayout
@@ -499,6 +501,9 @@ type Props = {
 }
 
 type Draft = {
+  logo_url: string | null
+  favicon_url: string | null
+  logo_text: string
   hero_layout: HeroLayout
   hero_image_url: string | null
   theme_preset: PresetId
@@ -515,6 +520,9 @@ type Draft = {
 /** Reads the appearance slice off settings, filling gaps with the defaults. */
 function toDraft(settings: SiteSettings): Draft {
   return {
+    logo_url: settings.logo_url ?? null,
+    favicon_url: settings.favicon_url ?? null,
+    logo_text: settings.logo_text ?? 'DJT',
     hero_layout: settings.hero_layout ?? DEFAULT_THEME.hero_layout,
     hero_image_url: settings.hero_image_url ?? null,
     theme_preset: settings.theme_preset ?? DEFAULT_THEME.theme_preset,
@@ -552,6 +560,11 @@ export default function ThemeEditor({
     setDraft(next)
     setState('dirty')
     applyTheme(next, palettes)
+    // Swap this tab's own icon too, so you can confirm the favicon renders
+    // at real size before committing to it.
+    if ('favicon_url' in patch) {
+      applyFavicon(next.favicon_url ? mediaUrl(next.favicon_url) : null)
+    }
   }
 
   /** Previews an unsaved palette edit without touching the draft. */
@@ -599,7 +612,8 @@ export default function ThemeEditor({
   const needsMigration =
     settings.theme_preset === undefined ||
     settings.work_layout === undefined ||
-    settings.about_layout === undefined
+    settings.about_layout === undefined ||
+    settings.logo_text === undefined
 
   return (
     <>
@@ -617,11 +631,64 @@ export default function ThemeEditor({
         <p className="notice notice--error" style={{ marginBottom: 'var(--space-s)' }}>
           Your database is missing some theme columns. Open Supabase → SQL
           Editor and run the files in{' '}
-          <code className="code">supabase/migrations/</code> in order (002, 003,
-          004), then reload this page. You can preview choices below, but saving
-          will fail until you do.
+          <code className="code">supabase/migrations/</code> in order (002
+          through 005), then reload this page. You can preview choices below,
+          but saving will fail until you do.
         </p>
       )}
+
+      {/* -- Brand ---------------------------------------------------------- */}
+      <div className="card">
+        <div className="card__head">
+          <h2 className="card__title">Brand</h2>
+        </div>
+
+        <div className="form">
+          <div className="brand-preview">
+            <span className="brand-preview__label mono">Nav preview</span>
+            <span className="brand-preview__bar">
+              {draft.logo_url ? (
+                <img
+                  className="nav__logo"
+                  src={mediaUrl(draft.logo_url)}
+                  alt=""
+                />
+              ) : (
+                <span className="nav__brand">
+                  {draft.logo_text || 'DJT'}
+                  <span>.</span>
+                </span>
+              )}
+            </span>
+          </div>
+
+          <FileUpload
+            label="Logo"
+            hint="Shown in the nav at 24px tall. SVG or a transparent PNG works best — pick one that reads on both the light and dark canvas, since there is a single logo for both."
+            folder="brand"
+            accept="image/svg+xml,image/png,image/webp,image/jpeg"
+            value={draft.logo_url}
+            onChange={(path) => edit({ logo_url: path })}
+          />
+
+          <TextField
+            label="Wordmark"
+            hint="Used when no logo image is set. Keep it short — initials read best at nav size. A dot in your accent colour is added automatically."
+            value={draft.logo_text}
+            onChange={(v) => edit({ logo_text: v })}
+            placeholder="DJT"
+          />
+
+          <FileUpload
+            label="Favicon"
+            hint="The browser tab icon. A square SVG or a 512×512 PNG is ideal. Tabs are tiny, so a single letter or mark beats a full logo."
+            folder="brand"
+            accept="image/svg+xml,image/png,image/x-icon,.ico"
+            value={draft.favicon_url}
+            onChange={(path) => edit({ favicon_url: path })}
+          />
+        </div>
+      </div>
 
       {/* -- Hero layout ---------------------------------------------------- */}
       <div className="card">

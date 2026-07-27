@@ -11,7 +11,8 @@ import Nav from './components/Nav'
 import { fetchPortfolio } from './lib/content'
 import { useTheme } from './lib/hooks'
 import { seedContent } from './lib/seed'
-import { applyTheme } from './lib/theme'
+import { mediaUrl } from './lib/supabase'
+import { applyFavicon, applyTheme } from './lib/theme'
 import type { PortfolioContent } from './lib/types'
 import Home from './site/Home'
 import ProjectPage from './site/ProjectPage'
@@ -76,6 +77,14 @@ function Shell() {
     applyTheme(content.settings, content.palettes)
   }, [content.settings, content.palettes, theme])
 
+  useEffect(() => {
+    applyFavicon(
+      content.settings.favicon_url
+        ? mediaUrl(content.settings.favicon_url)
+        : null,
+    )
+  }, [content.settings.favicon_url])
+
   if (isAdmin) {
     return (
       <Suspense fallback={<PageLoading />}>
@@ -91,6 +100,16 @@ function Shell() {
 
   if (loading) return <PageLoading />
 
+  const navProps = {
+    theme,
+    onToggleTheme: toggle,
+    logoUrl: content.settings.logo_url
+      ? mediaUrl(content.settings.logo_url)
+      : null,
+    logoText: content.settings.logo_text,
+    siteName: content.settings.name,
+  }
+
   return (
     <>
       <a className="skip-link" href="#main">
@@ -102,7 +121,7 @@ function Shell() {
           path="/"
           element={
             <>
-              <Nav theme={theme} onToggleTheme={toggle} />
+              <Nav {...navProps} />
               <Home content={content} />
               <Footer settings={content.settings} />
             </>
@@ -112,7 +131,7 @@ function Shell() {
           path="/work/:slug"
           element={
             <>
-              <Nav theme={theme} onToggleTheme={toggle} anchorsAreLinks />
+              <Nav {...navProps} anchorsAreLinks />
               <ProjectPage content={content} />
               <Footer settings={content.settings} />
             </>
@@ -122,7 +141,7 @@ function Shell() {
           path="*"
           element={
             <>
-              <Nav theme={theme} onToggleTheme={toggle} anchorsAreLinks />
+              <Nav {...navProps} anchorsAreLinks />
               <Home content={content} />
               <Footer settings={content.settings} />
             </>

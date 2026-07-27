@@ -36,6 +36,9 @@ export type SiteSettings = {
   seo_description: string
 
   // Appearance — set from the CMS "Theme" tab.
+  logo_url: string | null
+  favicon_url: string | null
+  logo_text: string
   hero_layout: HeroLayout
   hero_image_url: string | null
   theme_preset: PresetId

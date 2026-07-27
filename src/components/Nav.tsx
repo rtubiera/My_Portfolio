@@ -20,12 +20,18 @@ type Props = {
   onToggleTheme: () => void
   /** On the project detail page the in-page anchors need to route home first. */
   anchorsAreLinks?: boolean
+  logoUrl?: string | null
+  logoText?: string
+  siteName?: string
 }
 
 export default function Nav({
   theme,
   onToggleTheme,
   anchorsAreLinks = false,
+  logoUrl,
+  logoText,
+  siteName = 'Home',
 }: Props) {
   const [open, setOpen] = useState(false)
   const [stuck, setStuck] = useState(false)
@@ -49,8 +55,20 @@ export default function Nav({
   return (
     <header className="nav" data-stuck={stuck}>
       <div className="shell nav__inner">
-        <Link to="/" className="nav__brand" onClick={() => setOpen(false)}>
-          DJT<span>.</span>
+        <Link
+          to="/"
+          className="nav__brand"
+          onClick={() => setOpen(false)}
+          aria-label={siteName}
+        >
+          {logoUrl ? (
+            <img className="nav__logo" src={logoUrl} alt={siteName} />
+          ) : (
+            <>
+              {logoText || 'DJT'}
+              <span>.</span>
+            </>
+          )}
         </Link>
 
         <nav className="nav__links" data-open={open} aria-label="Sections">

@@ -41,6 +41,9 @@ export const seedContent: PortfolioContent = {
     seo_title: 'Delson James Tubiera — Full Stack .NET Developer',
     seo_description:
       'Software Developer II specialising in .NET 8, Blazor, and ASP.NET Core. Building enterprise banking and payment platforms in Metro Manila.',
+    logo_url: null,
+    favicon_url: null,
+    logo_text: 'DJT',
     hero_layout: 'editorial',
     hero_image_url: null,
     theme_preset: 'obsidian',

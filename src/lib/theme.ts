@@ -535,6 +535,43 @@ function accentVars(accent: string): string {
 const STYLE_ID = 'theme-overrides'
 const FONT_LINK_ID = 'theme-fonts'
 
+const FAVICON_FALLBACK = '/favicon.svg'
+
+/**
+ * Points the browser tab icon at an uploaded file.
+ *
+ * The type attribute is rewritten alongside the href because a stale
+ * `image/svg+xml` on a PNG makes some browsers refuse to render it. Passing a
+ * falsy url restores the bundled default.
+ */
+export function applyFavicon(url: string | null | undefined) {
+  if (typeof document === 'undefined') return
+
+  const href = url || FAVICON_FALLBACK
+  const ext = href.split('?')[0].split('.').pop()?.toLowerCase()
+  const type =
+    ext === 'svg'
+      ? 'image/svg+xml'
+      : ext === 'png'
+        ? 'image/png'
+        : ext === 'ico'
+          ? 'image/x-icon'
+          : ext === 'jpg' || ext === 'jpeg'
+            ? 'image/jpeg'
+            : ''
+
+  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+  if (!link) {
+    link = document.createElement('link')
+    link.rel = 'icon'
+    document.head.appendChild(link)
+  }
+
+  if (type) link.type = type
+  else link.removeAttribute('type')
+  if (link.href !== href) link.href = href
+}
+
 /** Injects (or updates) the Google Fonts link for the chosen pairing. */
 function loadFonts(pair: FontPair) {
   const href = `https://fonts.googleapis.com/css2?${pair.families

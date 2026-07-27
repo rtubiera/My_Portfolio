@@ -112,6 +112,7 @@ hard refresh. Without it those paths 404 on a static host.
 
 | Setting | Options |
 | --- | --- |
+| **Brand** | Logo image, wordmark fallback, and favicon — with a live nav preview |
 | **Hero layout** | **Editorial** (type only), **Portrait** (full-bleed photo with your name over it), **Split** (copy left, ring-framed photo right) |
 | **Projects section** | **List** (numbered rows), **Grid** (image tiles with caption bars), **Cards** (screenshot + title + stack + buttons) |
 | **Skills section** | **Grouped** (label beside tags), **Icon wall** (flat grid of tech logos), **Tiles** (bordered logo cards, still grouped) |
@@ -126,6 +127,21 @@ hard refresh. Without it those paths 404 on a static host.
 Both photo layouts have their own **Hero photo** upload. If you haven't set
 one, they fall back to your About portrait, and if that's missing too they fall
 back to the Editorial layout — the site never renders an empty frame.
+
+**Brand.** Theme → Brand holds the three identity pieces:
+
+- **Logo** — shown in the nav at 24px tall. There is one logo for both themes,
+  so pick an SVG or transparent PNG that reads on a light *and* dark canvas.
+- **Wordmark** — the text fallback when no logo image is set (currently `DJT`),
+  with a dot in your accent colour appended automatically.
+- **Favicon** — the browser tab icon. Square SVG or 512×512 PNG. Tabs are tiny,
+  so a single letter beats a full logo.
+
+A nav-sized preview sits above the fields, and uploading a favicon swaps the
+CMS tab's own icon immediately so you can judge it at real size. Note that the
+favicon is applied after content loads, so a hard refresh briefly shows the
+bundled default before yours appears — unavoidable without server rendering,
+and invisible on subsequent visits once cached.
 
 **Custom palettes.** Under Theme → Background → *Your palettes*, **New
 palette** creates one you can name, edit, and delete. You pick only **two
@@ -155,8 +171,8 @@ The brand-logo module is code-split: visitors only download it if you've
 actually selected an icon layout.
 
 > If you set the site up before these features existed, run the migrations in
-> [`supabase/migrations/`](supabase/migrations/) in order —
-> `002-theme.sql`, `003-section-layouts.sql`, `004-sections-and-palettes.sql` —
+> [`supabase/migrations/`](supabase/migrations/) in order — `002-theme.sql`,
+> `003-section-layouts.sql`, `004-sections-and-palettes.sql`, `005-brand.sql` —
 > in the Supabase SQL editor. Each is safe to re-run, and the Theme tab tells
 > you if any are outstanding.
 
