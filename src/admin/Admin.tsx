@@ -57,13 +57,21 @@ export default function Admin({ theme, onToggleTheme }: Props) {
   useEffect(() => {
     if (!supabase) return
 
+    // Supabase refreshes the token whenever the tab regains focus, and hands
+    // back a brand new session object for the same signed-in user. Storing it
+    // would restart the content fetch below and replace whatever is being
+    // edited with the server copy — so only a real sign-in or sign-out counts
+    // as a change here.
+    const adopt = (next: Session | null) =>
+      setSession((prev) => (prev?.user.id === next?.user.id ? prev : next))
+
     void supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+      adopt(data.session)
       setChecking(false)
     })
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next)
+      adopt(next)
     })
 
     return () => sub.subscription.unsubscribe()

@@ -22,7 +22,11 @@ export default function Home({ content }: { content: PortfolioContent }) {
       <Hero settings={settings} />
 
       <Section id="work" index="01" title="Selected work">
-        <WorkList projects={projects} layout={settings.work_layout} />
+        <WorkList
+          projects={projects}
+          layout={settings.work_layout}
+          limit={settings.work_limit}
+        />
       </Section>
 
       <Section id="experience" index="02" title="Experience">

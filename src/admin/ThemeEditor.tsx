@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Check } from '../components/Icons'
 import { supabase } from '../lib/supabase'
 import {
   ACCENTS,
   DEFAULT_THEME,
+  DEFAULT_WORK_LIMIT,
   EFFECT_META,
   FONT_PAIRS,
   PRESETS,
+  WORK_LIMITS,
   applyFavicon,
   applyTheme,
   type AboutLayout,
@@ -32,6 +34,7 @@ import type { SiteSettings } from '../lib/types'
 import PaletteManager from './PaletteManager'
 import ScheduleManager from './ScheduleManager'
 import { FileUpload, SaveBar, TextField, type SaveState } from './ui'
+import { useAutosave } from './useAutosave'
 
 const LAYOUTS: {
   id: HeroLayout
@@ -75,7 +78,19 @@ const WORK_LAYOUTS: { id: WorkLayout; label: string; description: string }[] = [
     label: 'Cards',
     description: 'Screenshot, title, stack, and buttons. Needs cover images.',
   },
+  {
+    id: 'carousel',
+    label: 'Carousel',
+    description:
+      'The same cards on a swipeable track with arrows. Shows every project.',
+  },
 ]
+
+/** "Show this many, then a button." 0 is the "no limit" option. */
+const LIMIT_OPTIONS = WORK_LIMITS.map((n) => ({
+  value: n,
+  label: n === 0 ? 'All' : String(n),
+}))
 
 const SKILLS_LAYOUTS: {
   id: SkillsLayout
@@ -387,6 +402,25 @@ function SectionPreview({
             {box(13 + col * 35, 45, 14, 5, 0.5)}
           </g>
         ))}
+      {/* Carousel: cards that run off the right edge, with dots and arrows. */}
+      {kind === 'carousel' && (
+        <>
+          {[0, 1, 2].map((col) => (
+            <g key={col}>
+              <rect x={9 + col * 41} y="7" width="37" height="34" rx="2.5" fill="none" stroke={c} strokeOpacity="0.3" />
+              {box(9 + col * 41, 7, 37, 14, 0.3, 2)}
+              {box(13 + col * 41, 25, 24, 4, 0.7)}
+              {box(13 + col * 41, 32, 18, 2.5, 0.3)}
+            </g>
+          ))}
+          {box(9, 51, 12, 3, 0.75, 1.5)}
+          {box(24, 51, 8, 3, 0.28, 1.5)}
+          {box(35, 51, 8, 3, 0.28, 1.5)}
+          <circle cx="95" cy="52.5" r="6" fill="none" stroke={c} strokeOpacity="0.4" />
+          <circle cx="108" cy="52.5" r="6" fill="none" stroke={c} strokeOpacity="0.4" />
+          <path d="M96.5 50l-2 2.5 2 2.5M106.5 50l2 2.5-2 2.5" fill="none" stroke={c} strokeOpacity="0.6" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
 
       {/* Skills */}
       {kind === 'grouped' &&
@@ -618,6 +652,7 @@ type Draft = {
   accent_color: string
   font_pair: FontPairId
   work_layout: WorkLayout
+  work_limit: number
   skills_layout: SkillsLayout
   experience_layout: ExperienceLayout
   about_layout: AboutLayout
@@ -641,6 +676,7 @@ function toDraft(settings: SiteSettings): Draft {
     accent_color: settings.accent_color ?? DEFAULT_THEME.accent_color,
     font_pair: settings.font_pair ?? DEFAULT_THEME.font_pair,
     work_layout: settings.work_layout ?? 'list',
+    work_limit: settings.work_limit ?? DEFAULT_WORK_LIMIT,
     skills_layout: settings.skills_layout ?? 'grouped',
     experience_layout: settings.experience_layout ?? 'rows',
     about_layout: settings.about_layout ?? 'sidebar',
@@ -664,17 +700,22 @@ export default function ThemeEditor({
   const [draft, setDraft] = useState<Draft>(() => toDraft(settings))
   const [state, setState] = useState<SaveState>('clean')
   const [error, setError] = useState('')
+  const inFlight = useRef(false)
+  const version = useRef(0)
 
-  // Re-sync when the parent reloads settings after a save.
+  // Re-sync when the parent reloads settings after a save. Reloads also happen
+  // unprompted when the tab regains focus and Supabase refreshes its token, so
+  // a draft with unsaved choices in it is left alone.
   const [lastLoaded, setLastLoaded] = useState(settings)
   if (settings !== lastLoaded) {
     setLastLoaded(settings)
-    setDraft(toDraft(settings))
+    if (state === 'clean' || state === 'saved') setDraft(toDraft(settings))
   }
 
   /** Every change previews immediately — the CMS uses the same design tokens. */
   function edit(patch: Partial<Draft>) {
     const next = { ...draft, ...patch }
+    version.current += 1
     setDraft(next)
     setState('dirty')
     applyTheme(next, palettes)
@@ -694,7 +735,9 @@ export default function ThemeEditor({
   }
 
   async function save() {
-    if (!supabase) return
+    if (!supabase || inFlight.current) return
+    inFlight.current = true
+    const savedAt = version.current
     setState('saving')
     setError('')
 
@@ -702,6 +745,7 @@ export default function ThemeEditor({
       .from('site_settings')
       .update({ ...draft, updated_at: new Date().toISOString() })
       .eq('id', 1)
+    inFlight.current = false
 
     if (saveError) {
       setState('error')
@@ -709,9 +753,12 @@ export default function ThemeEditor({
       return
     }
 
-    setState('saved')
+    // Choices made while the request was in flight are not in what we sent.
+    setState(version.current === savedAt ? 'saved' : 'dirty')
     onSaved()
   }
+
+  useAutosave(state === 'dirty', draft, save)
 
   function reset() {
     const original = toDraft(settings)
@@ -730,6 +777,7 @@ export default function ThemeEditor({
   const needsMigration =
     settings.theme_preset === undefined ||
     settings.work_layout === undefined ||
+    settings.work_limit === undefined ||
     settings.about_layout === undefined ||
     settings.logo_text === undefined ||
     settings.background_effect === undefined
@@ -751,7 +799,7 @@ export default function ThemeEditor({
           Your database is missing some theme columns. Open Supabase → SQL
           Editor and run the files in{' '}
           <code className="code">supabase/migrations/</code> in order (002
-          through 011), then reload this page. You can preview choices below,
+          through 012), then reload this page. You can preview choices below,
           but saving will fail until you do.
         </p>
       )}
@@ -885,11 +933,36 @@ export default function ThemeEditor({
 
         {draft.work_layout !== 'list' && (
           <p className="notice notice--info" style={{ marginTop: 'var(--space-2xs)' }}>
-            Grid and Cards are image-led. Any project without a cover image
-            falls back to a lettered tile — add covers under Projects → Cover
-            image to get the most out of these.
+            Grid, Cards and Carousel are image-led. Any project without a cover
+            image falls back to a lettered tile — add covers under Projects →
+            Cover image to get the most out of these.
           </p>
         )}
+
+        <div className="field" style={{ marginTop: 'var(--space-m)' }}>
+          <span className="field__label">Projects shown at first</span>
+          <div className="seg">
+            {LIMIT_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className="seg__btn"
+                data-selected={draft.work_limit === option.value}
+                onClick={() => edit({ work_limit: option.value })}
+                disabled={draft.work_layout === 'carousel'}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <span className="field__hint">
+            {draft.work_layout === 'carousel'
+              ? 'The carousel pages through every project on its own, so this setting does not apply to it.'
+              : draft.work_limit === 0
+                ? 'Every published project is listed on the home page.'
+                : `The home page lists ${draft.work_limit}, then a "Show more" button reveals the rest. Reorder your projects under the Projects tab to choose which ones make the cut.`}
+          </span>
+        </div>
       </div>
 
       {/* -- Skills layout -------------------------------------------------- */}

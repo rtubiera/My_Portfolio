@@ -280,15 +280,18 @@ export function SaveBar({
   error,
   onSave,
   onReset,
+  autosave = true,
 }: {
   state: SaveState
   error?: string
   onSave: () => void
   onReset?: () => void
+  /** Whether this editor saves itself — changes the wording only. */
+  autosave?: boolean
 }) {
   const text: Record<SaveState, string> = {
     clean: 'No unsaved changes',
-    dirty: 'Unsaved changes',
+    dirty: autosave ? 'Saving automatically…' : 'Unsaved changes',
     saving: 'Saving…',
     saved: 'Saved — live on the site',
     error: error ? `Save failed — ${error}` : 'Save failed',

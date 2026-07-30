@@ -37,7 +37,8 @@ create table if not exists public.site_settings (
   theme_preset   text not null default 'obsidian',   -- obsidian | midnight | slate | espresso
   accent_color   text not null default '#e9a94b',
   font_pair      text not null default 'inter',      -- inter | sora | space | outfit | serif
-  work_layout       text not null default 'list',    -- list | grid | cards
+  work_layout       text not null default 'list',    -- list | grid | cards | carousel
+  work_limit        int  not null default 6,          -- projects before "show more"; 0 = all
   skills_layout     text not null default 'grouped', -- grouped | icons | tiles
   experience_layout text not null default 'rows',    -- rows | timeline | cards
   about_layout      text not null default 'sidebar', -- sidebar | portrait | centered
@@ -77,12 +78,17 @@ alter table public.site_settings add constraint site_settings_accent_color_check
 
 alter table public.site_settings
   add column if not exists work_layout       text not null default 'list',
+  add column if not exists work_limit        int  not null default 6,
   add column if not exists skills_layout     text not null default 'grouped',
   add column if not exists experience_layout text not null default 'rows';
 
 alter table public.site_settings drop constraint if exists site_settings_work_layout_check;
 alter table public.site_settings add constraint site_settings_work_layout_check
-  check (work_layout in ('list', 'grid', 'cards'));
+  check (work_layout in ('list', 'grid', 'cards', 'carousel'));
+
+alter table public.site_settings drop constraint if exists site_settings_work_limit_check;
+alter table public.site_settings add constraint site_settings_work_limit_check
+  check (work_limit between 0 and 99);
 
 alter table public.site_settings drop constraint if exists site_settings_skills_layout_check;
 alter table public.site_settings add constraint site_settings_skills_layout_check

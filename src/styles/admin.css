@@ -752,6 +752,16 @@
   font-weight: 600;
 }
 
+/* Shown but inert when the setting does not apply to the current layout. */
+.seg__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.seg__btn:disabled:hover {
+  color: var(--ink-muted);
+}
+
 /* -- Rotation pool -------------------------------------------------------- */
 
 .pool-grid {

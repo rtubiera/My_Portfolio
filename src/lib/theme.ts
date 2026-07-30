@@ -8,7 +8,7 @@
    ========================================================================== */
 
 export type HeroLayout = 'editorial' | 'portrait' | 'split'
-export type WorkLayout = 'list' | 'grid' | 'cards'
+export type WorkLayout = 'list' | 'grid' | 'cards' | 'carousel'
 export type SkillsLayout = 'grouped' | 'icons' | 'tiles'
 export type ExperienceLayout = 'rows' | 'timeline' | 'cards'
 export type AboutLayout = 'sidebar' | 'portrait' | 'centered'
@@ -497,7 +497,25 @@ export function resolveHeroLayout(id: string | undefined): HeroLayout {
 }
 
 export function resolveWorkLayout(id: string | undefined): WorkLayout {
-  return id === 'grid' || id === 'cards' ? id : 'list'
+  return id === 'grid' || id === 'cards' || id === 'carousel' ? id : 'list'
+}
+
+/** How many projects the work section shows before "Show more". */
+export const DEFAULT_WORK_LIMIT = 6
+
+/** Options offered in the CMS. 0 means "no limit — show every project". */
+export const WORK_LIMITS = [3, 4, 6, 8, 12, 0]
+
+/**
+ * Guards the stored limit. A missing column (pre-migration 012) or a hand-
+ * edited nonsense value falls back to the default rather than hiding the whole
+ * section or dumping fifty projects on the page.
+ */
+export function resolveWorkLimit(value: number | null | undefined): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return DEFAULT_WORK_LIMIT
+  }
+  return Math.min(99, Math.max(0, Math.round(value)))
 }
 
 export function resolveSkillsLayout(id: string | undefined): SkillsLayout {

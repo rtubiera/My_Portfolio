@@ -1,17 +1,34 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { ContentTable } from '../lib/types'
 import type { SaveState } from './ui'
+import { useAutosave } from './useAutosave'
 
 type Row = { id: string; sort_order: number }
+
+/**
+ * Reconciles a freshly loaded list with a draft that still has unsaved edits.
+ *
+ * The draft wins on field values and on order — it is what the user is looking
+ * at. The server decides membership, so a row added or deleted in another tab
+ * still appears or disappears here.
+ */
+function merge<T extends Row>(loaded: T[], draft: T[]): T[] {
+  const loadedIds = new Set(loaded.map((r) => r.id))
+  const kept = draft.filter((d) => loadedIds.has(d.id))
+  const keptIds = new Set(kept.map((d) => d.id))
+  return [...kept, ...loaded.filter((r) => !keptIds.has(r.id))]
+}
 
 /**
  * Shared CRUD for the list-shaped tables (projects, experiences, skills,
  * certifications).
  *
  * Adds and deletes hit the database immediately so every row always has a real
- * UUID — edits are then batched into one Save. That keeps the UI honest: the
- * list you see is the list that exists.
+ * UUID — edits are then batched. That keeps the UI honest: the list you see is
+ * the list that exists. Edits save themselves a moment after you stop typing,
+ * and immediately if you leave the window; the Save button is a manual nudge
+ * rather than the only way changes survive.
  */
 export function useCollection<T extends Row>(
   table: ContentTable,
@@ -23,6 +40,12 @@ export function useCollection<T extends Row>(
   const [state, setState] = useState<SaveState>('clean')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  // Guards against the idle timer and the leaving-the-window flush firing the
+  // same save twice.
+  const inFlight = useRef(false)
+  // Bumped on every edit so a save can tell whether the draft moved on while
+  // it was in flight.
+  const version = useRef(0)
 
   // Re-sync the draft whenever the parent hands us a freshly loaded list
   // (after an add, delete, or save). This is React's "adjusting state when a
@@ -30,10 +53,15 @@ export function useCollection<T extends Row>(
   const [lastLoaded, setLastLoaded] = useState(initial)
   if (initial !== lastLoaded) {
     setLastLoaded(initial)
-    setRows(initial)
+    // A reload can land while there are still unsaved edits — a token refresh
+    // after alt-tab triggers one. Taking the server copy wholesale there would
+    // throw those edits away, so only a settled draft is replaced outright.
+    const settled = state === 'clean' || state === 'saved'
+    setRows((current) => (settled ? initial : merge(initial, current)))
   }
 
   function edit(id: string, patch: Partial<T>) {
+    version.current += 1
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)))
     setState('dirty')
   }
@@ -41,6 +69,7 @@ export function useCollection<T extends Row>(
   function move(index: number, direction: -1 | 1) {
     const target = index + direction
     if (target < 0 || target >= rows.length) return
+    version.current += 1
     const next = [...rows]
     ;[next[index], next[target]] = [next[target], next[index]]
     setRows(next.map((r, i) => ({ ...r, sort_order: i + 1 })))
@@ -85,12 +114,15 @@ export function useCollection<T extends Row>(
   }
 
   async function save() {
-    if (!supabase) return
+    if (!supabase || inFlight.current) return
+    inFlight.current = true
+    const savedAt = version.current
     setState('saving')
     setError('')
 
     const payload = rows.map((r, i) => ({ ...r, sort_order: i + 1 }))
     const { error: saveError } = await supabase.from(table).upsert(payload)
+    inFlight.current = false
 
     if (saveError) {
       setState('error')
@@ -98,9 +130,14 @@ export function useCollection<T extends Row>(
       return
     }
 
-    setState('saved')
+    // Anything typed while the request was in flight is not in what we just
+    // sent, so the draft stays dirty and autosaves again rather than being
+    // declared clean and then overwritten by the reload below.
+    setState(version.current === savedAt ? 'saved' : 'dirty')
     onChanged()
   }
+
+  useAutosave(state === 'dirty', rows, save)
 
   function reset() {
     setRows(initial)

@@ -51,6 +51,7 @@ export const seedContent: PortfolioContent = {
     accent_color: '#e9a94b',
     font_pair: 'inter',
     work_layout: 'list',
+    work_limit: 6,
     skills_layout: 'grouped',
     experience_layout: 'rows',
     about_layout: 'sidebar',

@@ -50,6 +50,8 @@ export type SiteSettings = {
   accent_color: string
   font_pair: FontPairId
   work_layout: WorkLayout
+  /** Projects shown before the "Show more" button. 0 = show every one. */
+  work_limit: number
   skills_layout: SkillsLayout
   experience_layout: ExperienceLayout
   about_layout: AboutLayout

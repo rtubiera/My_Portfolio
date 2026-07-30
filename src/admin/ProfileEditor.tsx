@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Metric, SiteSettings, SocialLink } from '../lib/types'
+import { useAutosave } from './useAutosave'
 import {
   FileUpload,
   Repeater,
@@ -21,21 +22,28 @@ export default function ProfileEditor({
   const [draft, setDraft] = useState<SiteSettings>(settings)
   const [state, setState] = useState<SaveState>('clean')
   const [error, setError] = useState('')
+  const inFlight = useRef(false)
+  const version = useRef(0)
 
-  // Re-sync the draft when the parent reloads settings after a save.
+  // Re-sync the draft when the parent reloads settings after a save. A reload
+  // can also arrive unprompted — Supabase refreshes its token when the tab
+  // regains focus — so a draft with unsaved edits in it is left alone.
   const [lastLoaded, setLastLoaded] = useState(settings)
   if (settings !== lastLoaded) {
     setLastLoaded(settings)
-    setDraft(settings)
+    if (state === 'clean' || state === 'saved') setDraft(settings)
   }
 
   function edit<K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) {
+    version.current += 1
     setDraft((d) => ({ ...d, [key]: value }))
     setState('dirty')
   }
 
   async function save() {
-    if (!supabase) return
+    if (!supabase || inFlight.current) return
+    inFlight.current = true
+    const savedAt = version.current
     setState('saving')
     setError('')
 
@@ -50,6 +58,7 @@ export default function ProfileEditor({
       .from('site_settings')
       .update(payload)
       .eq('id', 1)
+    inFlight.current = false
 
     if (saveError) {
       setState('error')
@@ -57,9 +66,12 @@ export default function ProfileEditor({
       return
     }
 
-    setState('saved')
+    // Edits made while the request was in flight are not in what we just sent.
+    setState(version.current === savedAt ? 'saved' : 'dirty')
     onSaved()
   }
+
+  useAutosave(state === 'dirty', draft, save)
 
   return (
     <>

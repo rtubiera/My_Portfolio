@@ -904,6 +904,121 @@
   padding: 0 var(--space-m) var(--space-m);
 }
 
+/* -- Work layout: carousel (cards on a snapping track) --------------------- */
+
+.work-carousel {
+  position: relative;
+}
+
+.work-carousel__track {
+  display: grid;
+  grid-auto-flow: column;
+  /* Three cards across, minus the two gaps between them. */
+  grid-auto-columns: calc((100% - var(--space-s) * 2) / 3);
+  gap: var(--space-s);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  /* The cards lift on hover — leave room so it is not clipped by the scroller. */
+  padding: 4px 4px 6px;
+  margin: -4px -4px -6px;
+  scrollbar-width: none;
+}
+
+.work-carousel__track::-webkit-scrollbar {
+  display: none;
+}
+
+.work-carousel__track:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
+}
+
+.work-carousel__slide {
+  scroll-snap-align: start;
+}
+
+.work-carousel__controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-s);
+  margin-top: var(--space-s);
+}
+
+.work-carousel__dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.work-carousel__dot {
+  width: 22px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  transition: background-color var(--dur) var(--ease), width var(--dur) var(--ease);
+}
+
+.work-carousel__dot:hover {
+  background: var(--ink-muted);
+}
+
+.work-carousel__dot[data-active='true'] {
+  width: 34px;
+  background: var(--accent);
+}
+
+.work-carousel__arrows {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.work-carousel__arrow {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--ink-soft);
+  background: var(--bg-raised);
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease);
+}
+
+.work-carousel__arrow:hover:not(:disabled) {
+  border-color: var(--accent-line);
+  background: var(--surface-hover);
+  color: var(--accent);
+}
+
+.work-carousel__arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (max-width: 900px) {
+  .work-carousel__track {
+    grid-auto-columns: calc((100% - var(--space-s)) / 2);
+  }
+}
+
+@media (max-width: 620px) {
+  .work-carousel__track {
+    grid-auto-columns: 86%;
+  }
+}
+
+/* -- Work: show more ------------------------------------------------------- */
+
+.work-more {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-m);
+}
+
 /* -- Experience ----------------------------------------------------------- */
 
 .exp-list {

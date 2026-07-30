@@ -102,6 +102,18 @@ export const ChevronDown = ({ size = 15, className }: IconProps) => (
   </svg>
 )
 
+export const ChevronLeft = ({ size = 15, className }: IconProps) => (
+  <svg {...base(size)} className={className}>
+    <path d="m15 18-6-6 6-6" />
+  </svg>
+)
+
+export const ChevronRight = ({ size = 15, className }: IconProps) => (
+  <svg {...base(size)} className={className}>
+    <path d="m9 18 6-6-6-6" />
+  </svg>
+)
+
 export const Check = ({ size = 15, className }: IconProps) => (
   <svg {...base(size)} className={className}>
     <path d="M20 6 9 17l-5-5" />
