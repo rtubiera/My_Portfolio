@@ -1227,6 +1227,31 @@
   margin-top: var(--space-s);
 }
 
+/* Roughly seven lines of body copy — enough to read as an opening, short
+   enough that a long about section does not push the page out of shape. */
+.about__body[data-clamped='true'] {
+  max-height: 15.5rem;
+  overflow: hidden;
+}
+
+/* Only faded when the clamp is actually cutting something off, otherwise a
+   short about section would fade out mid-sentence for no reason. */
+.about__body[data-faded='true'] {
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}
+
+.about__more {
+  display: flex;
+  margin-top: var(--space-s);
+}
+
+@media (max-width: 860px) {
+  .about__body[data-clamped='true'] {
+    max-height: 13rem;
+  }
+}
+
 .about__aside {
   display: grid;
   gap: var(--space-s);
@@ -1317,9 +1342,17 @@
   background: var(--bg-raised);
 }
 
+.about--centered .about__prose {
+  width: 100%;
+}
+
 .about--centered .about__body p {
   max-width: 62ch;
   margin-inline: auto;
+}
+
+.about--centered .about__more {
+  justify-content: center;
 }
 
 /* Facts as a horizontal strip, shared by the portrait and centered layouts. */
