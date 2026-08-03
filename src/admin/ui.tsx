@@ -78,6 +78,36 @@ export function TextArea({
   )
 }
 
+export function SelectField<T extends string>({
+  label,
+  hint,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  hint?: string
+  value: T
+  onChange: (value: T) => void
+  options: readonly { id: T; label: string }[]
+}) {
+  return (
+    <Field label={label} hint={hint}>
+      <select
+        className="select"
+        value={value}
+        onChange={(e) => onChange(e.target.value as T)}
+      >
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </Field>
+  )
+}
+
 /* -- Toggle ---------------------------------------------------------------- */
 
 export function Toggle({

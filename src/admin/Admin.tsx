@@ -5,6 +5,7 @@ import { Eye, Logout, Moon, Sun } from '../components/Icons'
 import { fetchPortfolioForAdmin } from '../lib/content'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import type { PortfolioContent } from '../lib/types'
+import ApplicationsTracker from './ApplicationsTracker'
 import CertificationsEditor from './CertificationsEditor'
 import ExperienceEditor from './ExperienceEditor'
 import Login from './Login'
@@ -22,6 +23,7 @@ type TabId =
   | 'experience'
   | 'skills'
   | 'certifications'
+  | 'applications'
   | 'messages'
 
 const TABS: { id: TabId; label: string }[] = [
@@ -31,6 +33,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'experience', label: 'Experience' },
   { id: 'skills', label: 'Skills' },
   { id: 'certifications', label: 'Awards' },
+  { id: 'applications', label: 'Applications' },
   { id: 'messages', label: 'Inbox' },
 ]
 
@@ -47,6 +50,7 @@ export default function Admin({ theme, onToggleTheme }: Props) {
   const [content, setContent] = useState<PortfolioContent | null>(null)
   const [tab, setTab] = useState<TabId>('profile')
   const [unread, setUnread] = useState(0)
+  const [openApplications, setOpenApplications] = useState(0)
 
   useEffect(() => {
     document.title = 'Portfolio CMS'
@@ -90,6 +94,17 @@ export default function Admin({ theme, onToggleTheme }: Props) {
     setUnread(count ?? 0)
   }, [])
 
+  // The badge counts applications still in play, not every one ever tracked —
+  // a closed application is history, not something to look at.
+  const refreshApplications = useCallback(async () => {
+    if (!supabase) return
+    const { count } = await supabase
+      .from('job_applications')
+      .select('id', { count: 'exact', head: true })
+      .eq('outcome', 'in_progress')
+    setOpenApplications(count ?? 0)
+  }, [])
+
   // Load CMS content once a session exists. Fetch-on-mount in an effect is the
   // right call here — this is a Vite SPA with no framework-level data loader.
   useEffect(() => {
@@ -97,7 +112,8 @@ export default function Admin({ theme, onToggleTheme }: Props) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void reload()
     void refreshUnread()
-  }, [session, reload, refreshUnread])
+    void refreshApplications()
+  }, [session, reload, refreshUnread, refreshApplications])
 
   if (!isSupabaseConfigured) return <Setup />
 
@@ -128,6 +144,7 @@ export default function Admin({ theme, onToggleTheme }: Props) {
     experience: content.experiences.length,
     skills: content.skills.length,
     certifications: content.certifications.length,
+    applications: openApplications || null,
     messages: unread || null,
   }
 
@@ -208,6 +225,9 @@ export default function Admin({ theme, onToggleTheme }: Props) {
             items={content.certifications}
             onChanged={reload}
           />
+        )}
+        {tab === 'applications' && (
+          <ApplicationsTracker onChanged={refreshApplications} />
         )}
         {tab === 'messages' && <MessagesInbox onRead={refreshUnread} />}
       </main>

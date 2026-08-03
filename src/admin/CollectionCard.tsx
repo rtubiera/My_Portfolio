@@ -6,7 +6,8 @@ type Props = {
   badges?: ReactNode
   index: number
   total: number
-  onMove: (direction: -1 | 1) => void
+  /** Omit to hide the reorder arrows — for lists ordered by their own data. */
+  onMove?: (direction: -1 | 1) => void
   onDelete: () => void
   deleteLabel: string
   children: ReactNode
@@ -52,24 +53,28 @@ export default function CollectionCard({
         </button>
 
         <div className="card__tools">
-          <button
-            type="button"
-            className="btn btn--sm btn--ghost"
-            onClick={() => onMove(-1)}
-            disabled={index === 0}
-            aria-label="Move up"
-          >
-            <ChevronUp />
-          </button>
-          <button
-            type="button"
-            className="btn btn--sm btn--ghost"
-            onClick={() => onMove(1)}
-            disabled={index === total - 1}
-            aria-label="Move down"
-          >
-            <ChevronDown />
-          </button>
+          {onMove && (
+            <>
+              <button
+                type="button"
+                className="btn btn--sm btn--ghost"
+                onClick={() => onMove(-1)}
+                disabled={index === 0}
+                aria-label="Move up"
+              >
+                <ChevronUp />
+              </button>
+              <button
+                type="button"
+                className="btn btn--sm btn--ghost"
+                onClick={() => onMove(1)}
+                disabled={index === total - 1}
+                aria-label="Move down"
+              >
+                <ChevronDown />
+              </button>
+            </>
+          )}
           {confirming ? (
             <>
               <button

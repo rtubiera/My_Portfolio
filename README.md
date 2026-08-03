@@ -140,6 +140,7 @@ missing, it warns and falls back to the static tags already in `index.html`.
 | **Skills**       | Skill groups and their tags                                          |
 | **Awards**       | Certifications and awards                                            |
 | **Theme**        | Hero layout, background preset, accent colour, and font pairing — all previewed live |
+| **Applications** | A private job application tracker — company, setup, salary range, interview stage, outcome |
 | **Inbox**        | Messages sent through the contact form, with reply and delete        |
 
 ### The Theme tab
@@ -302,13 +303,46 @@ database, 63 resolve to an icon.
 The brand-logo module is code-split: visitors only download it if you've
 actually selected an icon layout.
 
+### The Applications tab
+
+A job hunt tracker that lives behind the login. `job_applications` is the only
+table in the schema with **no public read policy** — the anon key the site ships
+with cannot see it, and nothing in it is rendered anywhere on the public site.
+
+Each application records the company, role, location, work setup (on-site /
+hybrid / remote), a salary range with its currency and period, the date you
+applied, where you found it, a contact, the job posting URL, and free notes.
+
+Two fields describe where it stands, and keeping them apart is the whole design:
+
+- **Stage** — how far it got: *Applied → Initial interview → Technical
+  interview → Code exam → Assessment → Final interview → Job offer*. It's a
+  clickable rail, not a dropdown: click the stage you've reached.
+- **Outcome** — how it ended: *In progress, Offer accepted, Rejected, I
+  declined, No response*.
+
+One field could not say "reached the final interview, then rejected" — two can,
+which is also what makes "which stage do I keep losing at" answerable later. The
+rail takes its colour from the outcome, so a rejected application reads as *got
+this far, then stopped* at a glance.
+
+Above the list are counts (total, in progress, interviewing, offers, closed),
+a filter, and a search across company, role and notes. The sidebar badge counts
+only applications still in play. **Export CSV** dumps the whole table.
+
+Set a **Next step** date on anything with an interview booked and the card
+header shows how long you've got — *Next in 3 days*. Same autosave as every
+other tab: edits save a moment after you stop typing, and immediately if you
+alt-tab away.
+
 > If you set the site up before these features existed, run the migrations in
 > [`supabase/migrations/`](supabase/migrations/) in order — `002-theme.sql`,
 > `003-section-layouts.sql`, `004-sections-and-palettes.sql`, `005-brand.sql`,
 > `006-share-image.sql`, `007-background-effect.sql`,
 > `008-effect-schedules.sql`, `009-effect-rotation.sql`,
-> `010-holiday-effects.sql`, `011-rotation-fast-modes.sql` — in the Supabase
-> SQL editor. Each is safe to re-run, and the Theme tab tells you if any are
+> `010-holiday-effects.sql`, `011-rotation-fast-modes.sql`,
+> `012-work-carousel.sql`, `013-job-applications.sql` — in the Supabase SQL
+> editor. Each is safe to re-run, and the Theme tab tells you if any are
 > outstanding.
 
 A few conventions worth knowing:

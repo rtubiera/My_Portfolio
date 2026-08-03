@@ -15,6 +15,13 @@ import type {
 
 import type { EffectSchedule, RotationMode } from './schedule'
 
+import type {
+  ApplicationOutcome,
+  ApplicationStage,
+  SalaryPeriod,
+  WorkSetup,
+} from './applications'
+
 export type { CustomPalette, EffectSchedule, RotationMode }
 
 export type SocialLink = { label: string; url: string }
@@ -111,6 +118,32 @@ export type Certification = {
   sort_order: number
 }
 
+/**
+ * One row in the private job application tracker. Never leaves the CMS — see
+ * `lib/applications.ts` for what the stage and outcome fields mean.
+ */
+export type JobApplication = {
+  id: string
+  company: string
+  role: string
+  location: string
+  work_setup: WorkSetup
+  salary_min: number | null
+  salary_max: number | null
+  salary_currency: string
+  salary_period: SalaryPeriod
+  /** `yyyy-mm-dd`, or null while you have not filled it in. */
+  applied_on: string | null
+  stage: ApplicationStage
+  outcome: ApplicationOutcome
+  next_step_on: string | null
+  job_url: string | null
+  source: string
+  contact: string
+  notes: string
+  sort_order: number
+}
+
 export type Message = {
   id: string
   name: string
@@ -140,3 +173,4 @@ export type ContentTable =
   | 'certifications'
   | 'theme_palettes'
   | 'effect_schedules'
+  | 'job_applications'
