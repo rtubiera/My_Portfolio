@@ -238,10 +238,13 @@ const PREVIEW_FAMILY: Record<BackgroundEffect, PreviewFamily> = {
   matrix: 'fall',
   hearts: 'rise',
   fireflies: 'rise',
+  astronaut: 'rise',
   stars: 'twinkle',
   fireworks: 'twinkle',
+  galaxy: 'twinkle',
   constellation: 'web',
   bats: 'web',
+  websling: 'web',
 }
 
 /** Preview tint per effect; unset means "use the accent colour". */
@@ -255,6 +258,9 @@ const PREVIEW_TINT: Partial<Record<BackgroundEffect, string>> = {
   fireworks: '#ffd166',
   fireflies: '#ffe282',
   matrix: '#3ecf8e',
+  astronaut: 'var(--ink)',
+  websling: '#d1262f',
+  galaxy: '#9b7cf6',
 }
 
 function EffectPreview({ id }: { id: BackgroundEffect }) {

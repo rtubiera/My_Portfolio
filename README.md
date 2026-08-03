@@ -155,7 +155,7 @@ missing, it warns and falls back to the static tags already in `index.html`.
 | **About section** | **Sidebar** (prose + fact card), **Portrait** (tall photo beside prose), **Centered** (round avatar, centred prose) |
 | **Certifications** | **Grid** (bordered cards), **List** (hairline rows), **Badges** (pills with an accent seal) |
 | **Contact section** | **Split** (pitch left, form right), **Centered** (narrow column), **Cards** (detail tiles above a panelled form) |
-| **Background effect** | Twelve effects — plus intensity, automatic **rotation**, and date **schedules** with one-click holiday presets |
+| **Background effect** | Fifteen effects — plus intensity, automatic **rotation**, and date **schedules** with one-click holiday presets |
 | **Background** | Obsidian, Midnight, Slate, Espresso — each ships a matched dark *and* light palette — **plus any palettes you build yourself** |
 | **Accent** | Eight swatches plus a custom hex picker. The light theme automatically gets a darkened version so it stays readable on a pale background |
 | **Typography** | Inter, Sora, Space Grotesk, Outfit, or Instrument Serif — loaded from Google Fonts on demand |
@@ -193,10 +193,18 @@ Intensity scales both particle count and opacity.
 | **Petals** | Spring |
 | **Fireflies** | Summer evenings |
 | **Code rain** | Developer flavour |
+| **Spacewalk** | Astronauts tumbling past a moon |
+| **Web-slinger** | Figures swinging by on webs, Spider-Man flavour |
+| **Milky Way** | The galactic band across the whole page |
 | **Stars**, **Constellation**, **Aurora** | Year-round ambience |
 
-All are canvas particle layers except **Aurora**, which is a slow accent
-glow. Each renderer lives in
+All are canvas layers except **Aurora**, which is a slow accent glow.
+**Spacewalk** and **Web-slinger** are scenes rather than particle storms —
+they draw a handful of large figures, so intensity adds one or two more
+instead of filling the screen. **Milky Way** is different again: its band is
+tens of thousands of marks, so it is baked once into an offscreen strip that
+afterwards scrolls as a single image, and a frame costs two blits plus the
+near stars drawn live on top. Each renderer lives in
 [`src/lib/effectRenderers.ts`](src/lib/effectRenderers.ts) as a factory that
 holds its own state — that is what lets fireworks manage bursts and code rain
 manage columns without the simpler effects carrying fields they never use.
@@ -341,7 +349,8 @@ alt-tab away.
 > `006-share-image.sql`, `007-background-effect.sql`,
 > `008-effect-schedules.sql`, `009-effect-rotation.sql`,
 > `010-holiday-effects.sql`, `011-rotation-fast-modes.sql`,
-> `012-work-carousel.sql`, `013-job-applications.sql` — in the Supabase SQL
+> `012-work-carousel.sql`, `013-job-applications.sql`,
+> `014-space-and-web-effects.sql` — in the Supabase SQL
 > editor. Each is safe to re-run, and the Theme tab tells you if any are
 > outstanding.
 

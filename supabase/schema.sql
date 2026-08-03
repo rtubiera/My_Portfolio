@@ -129,7 +129,8 @@ alter table public.site_settings drop constraint if exists site_settings_backgro
 alter table public.site_settings add constraint site_settings_background_effect_check
   check (background_effect in (
     'none', 'snow', 'stars', 'constellation', 'aurora', 'confetti', 'hearts',
-    'bats', 'fireworks', 'leaves', 'petals', 'fireflies', 'matrix'));
+    'bats', 'fireworks', 'leaves', 'petals', 'fireflies', 'matrix',
+    'astronaut', 'websling', 'galaxy'));
 
 alter table public.site_settings drop constraint if exists site_settings_effect_intensity_check;
 alter table public.site_settings add constraint site_settings_effect_intensity_check
@@ -164,7 +165,8 @@ create table if not exists public.effect_schedules (
   created_at  timestamptz not null default now(),
   constraint effect_schedules_effect_check check (effect in
     ('none', 'snow', 'stars', 'constellation', 'aurora', 'confetti', 'hearts',
-     'bats', 'fireworks', 'leaves', 'petals', 'fireflies', 'matrix')),
+     'bats', 'fireworks', 'leaves', 'petals', 'fireflies', 'matrix',
+     'astronaut', 'websling', 'galaxy')),
   constraint effect_schedules_intensity_check check (intensity in
     ('subtle', 'medium', 'heavy')),
   constraint effect_schedules_recurrence_check check (recurrence in

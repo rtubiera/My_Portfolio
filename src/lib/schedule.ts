@@ -144,6 +144,9 @@ export const ROTATABLE_EFFECTS: BackgroundEffect[] = [
   'petals',
   'fireflies',
   'matrix',
+  'astronaut',
+  'websling',
+  'galaxy',
 ]
 
 /** FNV-1a. Small, fast, and stable across engines — unlike Math.random(). */

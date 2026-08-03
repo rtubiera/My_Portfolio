@@ -28,6 +28,9 @@ export type BackgroundEffect =
   | 'petals'
   | 'fireflies'
   | 'matrix'
+  | 'astronaut'
+  | 'websling'
+  | 'galaxy'
 export type EffectIntensity = 'subtle' | 'medium' | 'heavy'
 export type PresetId = 'obsidian' | 'midnight' | 'slate' | 'espresso'
 export type FontPairId = 'inter' | 'sora' | 'space' | 'outfit' | 'serif'
@@ -557,6 +560,9 @@ const EFFECT_IDS: BackgroundEffect[] = [
   'petals',
   'fireflies',
   'matrix',
+  'astronaut',
+  'websling',
+  'galaxy',
 ]
 
 /** Label and one-line description for every effect, shared by the pickers. */
@@ -606,6 +612,18 @@ export const EFFECT_META: Record<
   matrix: {
     label: 'Code rain',
     description: 'Falling glyph columns. Very developer.',
+  },
+  astronaut: {
+    label: 'Spacewalk',
+    description: 'Astronauts drifting past a moon, over a starfield.',
+  },
+  websling: {
+    label: 'Web-slinger',
+    description: 'Masked figures swinging by on webs. Spider-Man flavour.',
+  },
+  galaxy: {
+    label: 'Milky Way',
+    description: 'The galactic band — nebula clouds, dust lanes, drifting stars.',
   },
 }
 
