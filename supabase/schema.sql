@@ -326,6 +326,44 @@ create policy "authenticated write job_applications"
   on public.job_applications for all to authenticated
   using (true) with check (true);
 
+-- Private document bank: certificates of employment, clearances, contracts.
+-- Metadata only — the files live in the `documents` storage bucket, which is
+-- not public. See migrations/015 for the full rationale.
+create table if not exists public.documents (
+  id          uuid primary key default gen_random_uuid(),
+  title       text not null default '',
+  kind        text not null default 'other',
+  issuer      text not null default '',
+  reference   text not null default '',
+  issued_on   date,
+  expires_on  date,
+  file_path   text not null,
+  file_name   text not null default '',
+  file_size   bigint not null default 0,
+  mime_type   text not null default '',
+  notes       text not null default '',
+  sort_order  int not null default 0,
+  created_at  timestamptz not null default now(),
+
+  constraint documents_kind_check check (kind in
+    ('coe', 'certificate', 'diploma', 'clearance', 'government',
+     'contract', 'payslip', 'resume', 'other')),
+  constraint documents_file_size_check check (file_size >= 0)
+);
+
+create index if not exists documents_created_at_idx
+  on public.documents (created_at desc);
+create index if not exists documents_kind_idx
+  on public.documents (kind);
+
+alter table public.documents enable row level security;
+
+-- Also no "public read" policy: signed-in access only.
+drop policy if exists "authenticated write documents" on public.documents;
+create policy "authenticated write documents"
+  on public.documents for all to authenticated
+  using (true) with check (true);
+
 -- ---------------------------------------------------------------------------
 --  2. ROW LEVEL SECURITY
 --     Public (anon key) can read published content and drop a message.
@@ -370,7 +408,7 @@ create policy "anon can send message"
   on public.messages for insert to anon with check (true);
 
 -- ---------------------------------------------------------------------------
---  3. STORAGE — bucket for project covers, avatar, resume PDF
+--  3. STORAGE — the public `media` bucket, and the private `documents` one
 --
 --  If this section errors with "must be owner of table objects", your project
 --  restricts DDL on the storage schema. Do it in the dashboard instead:
@@ -393,6 +431,24 @@ create policy "public read media"
 create policy "authenticated write media"
   on storage.objects for all to authenticated
   using (bucket_id = 'media') with check (bucket_id = 'media');
+
+-- The document bank's own bucket, and the one bucket that is NOT public: it
+-- holds personal records, read through short-lived signed URLs. In the
+-- dashboard it is Storage → New bucket → "documents", "Public bucket" OFF.
+insert into storage.buckets (id, name, public)
+values ('documents', 'documents', false)
+on conflict (id) do update set public = false;
+
+drop policy if exists "authenticated read documents"  on storage.objects;
+drop policy if exists "authenticated write documents" on storage.objects;
+
+create policy "authenticated read documents"
+  on storage.objects for select to authenticated
+  using (bucket_id = 'documents');
+
+create policy "authenticated write documents"
+  on storage.objects for all to authenticated
+  using (bucket_id = 'documents') with check (bucket_id = 'documents');
 
 -- ---------------------------------------------------------------------------
 --  4. SEED — your resume content. Only inserts if the table is empty,

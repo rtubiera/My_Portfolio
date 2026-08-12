@@ -7,6 +7,7 @@ import { isSupabaseConfigured, supabase } from '../lib/supabase'
 import type { PortfolioContent } from '../lib/types'
 import ApplicationsTracker from './ApplicationsTracker'
 import CertificationsEditor from './CertificationsEditor'
+import DocumentBank from './DocumentBank'
 import ExperienceEditor from './ExperienceEditor'
 import Login from './Login'
 import MessagesInbox from './MessagesInbox'
@@ -24,6 +25,7 @@ type TabId =
   | 'skills'
   | 'certifications'
   | 'applications'
+  | 'documents'
   | 'messages'
 
 const TABS: { id: TabId; label: string }[] = [
@@ -34,6 +36,7 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'skills', label: 'Skills' },
   { id: 'certifications', label: 'Awards' },
   { id: 'applications', label: 'Applications' },
+  { id: 'documents', label: 'Documents' },
   { id: 'messages', label: 'Inbox' },
 ]
 
@@ -51,6 +54,7 @@ export default function Admin({ theme, onToggleTheme }: Props) {
   const [tab, setTab] = useState<TabId>('profile')
   const [unread, setUnread] = useState(0)
   const [openApplications, setOpenApplications] = useState(0)
+  const [documents, setDocuments] = useState(0)
 
   useEffect(() => {
     document.title = 'Portfolio CMS'
@@ -105,6 +109,14 @@ export default function Admin({ theme, onToggleTheme }: Props) {
     setOpenApplications(count ?? 0)
   }, [])
 
+  const refreshDocuments = useCallback(async () => {
+    if (!supabase) return
+    const { count } = await supabase
+      .from('documents')
+      .select('id', { count: 'exact', head: true })
+    setDocuments(count ?? 0)
+  }, [])
+
   // Load CMS content once a session exists. Fetch-on-mount in an effect is the
   // right call here — this is a Vite SPA with no framework-level data loader.
   useEffect(() => {
@@ -113,7 +125,8 @@ export default function Admin({ theme, onToggleTheme }: Props) {
     void reload()
     void refreshUnread()
     void refreshApplications()
-  }, [session, reload, refreshUnread, refreshApplications])
+    void refreshDocuments()
+  }, [session, reload, refreshUnread, refreshApplications, refreshDocuments])
 
   if (!isSupabaseConfigured) return <Setup />
 
@@ -145,6 +158,7 @@ export default function Admin({ theme, onToggleTheme }: Props) {
     skills: content.skills.length,
     certifications: content.certifications.length,
     applications: openApplications || null,
+    documents: documents || null,
     messages: unread || null,
   }
 
@@ -229,6 +243,7 @@ export default function Admin({ theme, onToggleTheme }: Props) {
         {tab === 'applications' && (
           <ApplicationsTracker onChanged={refreshApplications} />
         )}
+        {tab === 'documents' && <DocumentBank onChanged={refreshDocuments} />}
         {tab === 'messages' && <MessagesInbox onRead={refreshUnread} />}
       </main>
     </div>

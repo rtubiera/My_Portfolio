@@ -22,6 +22,8 @@ import type {
   WorkSetup,
 } from './applications'
 
+import type { DocumentKind } from './documents'
+
 export type { CustomPalette, EffectSchedule, RotationMode }
 
 export type SocialLink = { label: string; url: string }
@@ -144,6 +146,30 @@ export type JobApplication = {
   sort_order: number
 }
 
+/**
+ * One file in the private document bank. The row is metadata only — the file
+ * itself lives in the `documents` storage bucket at `file_path`, which is not
+ * publicly readable.
+ */
+export type StoredDocument = {
+  id: string
+  title: string
+  kind: DocumentKind
+  issuer: string
+  /** Certificate or reference number, if the document carries one. */
+  reference: string
+  /** `yyyy-mm-dd`, or null when it does not apply. */
+  issued_on: string | null
+  expires_on: string | null
+  file_path: string
+  file_name: string
+  file_size: number
+  mime_type: string
+  notes: string
+  sort_order: number
+  created_at: string
+}
+
 export type Message = {
   id: string
   name: string
@@ -174,3 +200,4 @@ export type ContentTable =
   | 'theme_palettes'
   | 'effect_schedules'
   | 'job_applications'
+  | 'documents'

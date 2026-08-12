@@ -141,6 +141,7 @@ missing, it warns and falls back to the static tags already in `index.html`.
 | **Awards**       | Certifications and awards                                            |
 | **Theme**        | Hero layout, background preset, accent colour, and font pairing — all previewed live |
 | **Applications** | A private job application tracker — company, setup, salary range, interview stage, outcome |
+| **Documents**    | A private file bank — COEs, certificates, clearances and contracts, with expiry tracking |
 | **Inbox**        | Messages sent through the contact form, with reply and delete        |
 
 ### The Theme tab
@@ -343,6 +344,38 @@ header shows how long you've got — *Next in 3 days*. Same autosave as every
 other tab: edits save a moment after you stop typing, and immediately if you
 alt-tab away.
 
+### The Documents tab
+
+Storage for the paperwork a career leaves behind: certificates of employment,
+training certificates, diplomas, clearances, contracts, payslips. Drop files
+onto the panel — several at once is fine — and each one becomes a card.
+
+**These files are not public.** They go into their own `documents` storage
+bucket, and that bucket, unlike `media`, has no public read policy. An
+unguessable URL is not a permission, and a COE carries your name, your employer
+and often your salary. Nothing here is readable without a signed-in session:
+
+- **Open** and **Download** mint a signed URL good for two minutes.
+- **Copy link** mints one good for an hour, for when HR asks you to send it.
+
+Every link expires on its own, so nothing you hand out stays live, and a
+screenshot of this screen leaks nothing.
+
+Each card records a title, what kind of document it is, who issued it, a
+reference number, and the dates it was issued and expires. The kind is guessed
+from the filename on upload — a file with `coe` in its name lands as a
+Certificate of Employment — and is a dropdown you can correct.
+
+Expiry is the point of the dates. Clearances and IDs lapse, and finding that out
+in the week you need the document is the problem this prevents: anything inside
+60 days is flagged on its card and counted in **Expiring soon** at the top,
+anything past its date reads *Expired 30 days ago* in red. Alongside those are
+the total count and how much storage the bank is using.
+
+Filter by kind, search across titles, issuers and notes. Deleting a card removes
+the stored file too — the file first, so a failure leaves a row you can see and
+delete again rather than a file nothing will ever list.
+
 > If you set the site up before these features existed, run the migrations in
 > [`supabase/migrations/`](supabase/migrations/) in order — `002-theme.sql`,
 > `003-section-layouts.sql`, `004-sections-and-palettes.sql`, `005-brand.sql`,
@@ -350,7 +383,7 @@ alt-tab away.
 > `008-effect-schedules.sql`, `009-effect-rotation.sql`,
 > `010-holiday-effects.sql`, `011-rotation-fast-modes.sql`,
 > `012-work-carousel.sql`, `013-job-applications.sql`,
-> `014-space-and-web-effects.sql` — in the Supabase SQL
+> `014-space-and-web-effects.sql`, `015-document-bank.sql` — in the Supabase SQL
 > editor. Each is safe to re-run, and the Theme tab tells you if any are
 > outstanding.
 

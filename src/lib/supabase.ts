@@ -28,3 +28,27 @@ export function mediaUrl(path: string): string {
   if (/^https?:\/\//i.test(path)) return path
   return supabase.storage.from('media').getPublicUrl(path).data.publicUrl
 }
+
+/**
+ * Time-limited URL for a file in the private `documents` bucket.
+ *
+ * Unlike `media`, that bucket has no public read policy — a permanent public
+ * URL for a Certificate of Employment is a leak waiting to happen, and an
+ * unguessable path is not a permission. The link is minted per click, signed
+ * against the caller's session, and expires.
+ *
+ * Passing `download` makes the response an attachment under that filename
+ * instead of something the browser renders inline.
+ */
+export async function documentUrl(
+  path: string,
+  seconds = 60,
+  download?: string,
+): Promise<string | null> {
+  if (!supabase || !path) return null
+  const { data, error } = await supabase.storage
+    .from('documents')
+    .createSignedUrl(path, seconds, download ? { download } : undefined)
+  if (error) return null
+  return data?.signedUrl ?? null
+}
