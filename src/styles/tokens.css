@@ -1,0 +1,96 @@
+/* ==========================================================================
+   Editorial Mono — design tokens
+   Dark is the default canvas; light is a true paper theme, not an inversion.
+   ========================================================================== */
+
+:root {
+  /* -- Type ------------------------------------------------------------- */
+  /* These four are overwritten at runtime by applyTheme() from the font
+     pairing chosen in the CMS. The values here are the default pairing, so
+     the page renders correctly before any settings arrive. */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono',
+    Menlo, Consolas, 'Liberation Mono', monospace;
+  --tracking-display: -0.022em;
+
+  --step--2: clamp(0.69rem, 0.67rem + 0.09vw, 0.75rem);
+  --step--1: clamp(0.83rem, 0.8rem + 0.14vw, 0.92rem);
+  --step-0: clamp(0.95rem, 0.92rem + 0.16vw, 1.05rem);
+  --step-1: clamp(1.13rem, 1.06rem + 0.34vw, 1.35rem);
+  --step-2: clamp(1.38rem, 1.24rem + 0.68vw, 1.83rem);
+  --step-3: clamp(1.7rem, 1.42rem + 1.35vw, 2.6rem);
+  --step-4: clamp(2.1rem, 1.55rem + 2.7vw, 3.9rem);
+  --step-5: clamp(2.6rem, 1.5rem + 5.2vw, 6rem);
+
+  /* -- Space ------------------------------------------------------------ */
+  --space-3xs: 0.25rem;
+  --space-2xs: 0.5rem;
+  --space-xs: 0.75rem;
+  --space-s: 1rem;
+  --space-m: 1.5rem;
+  --space-l: 2.25rem;
+  --space-xl: 3.5rem;
+  --space-2xl: 5.5rem;
+  --space-3xl: 8rem;
+
+  /* -- Layout ----------------------------------------------------------- */
+  --measure: 62ch;
+  --shell: 1180px;
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --radius: 4px;
+  --radius-lg: 10px;
+
+  /* -- Motion ----------------------------------------------------------- */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 260ms;
+
+  color-scheme: dark;
+
+  /* -- Colour: dark (default) ------------------------------------------- */
+  --bg: #0a0a0b;
+  --bg-raised: #101012;
+  --bg-inset: #08080a;
+  --surface: #141417;
+  --surface-hover: #1a1a1e;
+  --line: #26262b;
+  --line-strong: #35353c;
+  --ink: #f2f2f4;
+  --ink-soft: #b7b7c0;
+  --ink-muted: #7e7e8a;
+  --ink-faint: #55555f;
+  --accent: #e9a94b;
+  --accent-ink: #14120c;
+  --accent-soft: rgba(233, 169, 75, 0.13);
+  --accent-line: rgba(233, 169, 75, 0.32);
+  --positive: #58c99a;
+  --danger: #f4796b;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px -12px rgba(0, 0, 0, 0.7);
+  --grain-opacity: 0.035;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #fbfaf8;
+  --bg-raised: #ffffff;
+  --bg-inset: #f3f1ed;
+  --surface: #ffffff;
+  --surface-hover: #f6f4f0;
+  --line: #e3dfd8;
+  --line-strong: #cdc7bd;
+  --ink: #16161a;
+  --ink-soft: #43434c;
+  --ink-muted: #6e6e79;
+  --ink-faint: #9a9aa4;
+  --accent: #9a5c05;
+  --accent-ink: #fffaf2;
+  --accent-soft: rgba(154, 92, 5, 0.09);
+  --accent-line: rgba(154, 92, 5, 0.26);
+  --positive: #17795a;
+  --danger: #b3392a;
+  --shadow: 0 1px 2px rgba(28, 22, 12, 0.06),
+    0 12px 28px -14px rgba(28, 22, 12, 0.18);
+  --grain-opacity: 0.02;
+}
