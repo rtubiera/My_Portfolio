@@ -22,6 +22,19 @@ export const supabase: SupabaseClient | null =
 
 export const isSupabaseConfigured = supabase !== null
 
+/**
+ * Removes a persisted session that Supabase can no longer validate. This
+ * prevents an invalid bearer token from breaking public content requests.
+ */
+export async function clearInvalidSession(): Promise<void> {
+  if (!supabase) return
+  const { data } = await supabase.auth.getSession()
+  if (!data.session) return
+
+  const { error } = await supabase.auth.getUser()
+  if (error) await supabase.auth.signOut({ scope: 'local' })
+}
+
 /** Public URL for a file in the `media` storage bucket. */
 export function mediaUrl(path: string): string {
   if (!supabase || !path) return path

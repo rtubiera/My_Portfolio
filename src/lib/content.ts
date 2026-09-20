@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { clearInvalidSession, supabase } from './supabase'
 import { seedContent } from './seed'
 import type {
   Certification,
@@ -26,6 +26,7 @@ export async function fetchPortfolio(): Promise<{
   }
 
   try {
+    await clearInvalidSession()
     const [
       settings,
       projects,
@@ -110,6 +111,7 @@ export async function fetchPortfolio(): Promise<{
 export async function fetchPortfolioForAdmin(): Promise<PortfolioContent> {
   if (!supabase) return seedContent
 
+  await clearInvalidSession()
   const [
     settings,
     projects,

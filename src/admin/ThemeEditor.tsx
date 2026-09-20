@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { Check } from '../components/Icons'
 import { supabase } from '../lib/supabase'
 import {
@@ -596,7 +596,9 @@ function ContactPreview({ kind }: { kind: 'centered' | 'cards' }) {
         <>
           {bar(38, 8, 44, 6, 0.6)}
           {bar(32, 18, 56, 2.5, 0.26)}
-          {[25, 34].map((y) => bar(30, y, 60, 6, 0.24))}
+          {[25, 34].map((y) => (
+            <Fragment key={y}>{bar(30, y, 60, 6, 0.24)}</Fragment>
+          ))}
           {bar(50, 44, 20, 6, 0.55)}
           <rect x="30" y="55" width="60" height="0.8" fill={c} fillOpacity="0.22" />
         </>
@@ -611,7 +613,9 @@ function ContactPreview({ kind }: { kind: 'centered' | 'cards' }) {
           ))}
           <rect x="9" y="27" width="102" height="26" rx="2.5" fill="none" stroke={c} strokeOpacity="0.32" />
           {bar(14, 31, 40, 5, 0.6)}
-          {[39, 46].map((y) => bar(14, y, 92, 5, 0.24))}
+          {[39, 46].map((y) => (
+            <Fragment key={y}>{bar(14, y, 92, 5, 0.24)}</Fragment>
+          ))}
         </>
       )}
     </svg>

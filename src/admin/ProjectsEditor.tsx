@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Plus } from '../components/Icons'
 import { commasToArray, linesToArray, slugify } from '../lib/content'
 import type { Project } from '../lib/types'
@@ -12,7 +13,12 @@ export default function ProjectsEditor({
   projects: Project[]
   onChanged: () => void
 }) {
-  const c = useCollection<Project>('projects', projects, onChanged, () => ({
+  const [techDrafts, setTechDrafts] = useState<Record<string, string>>({})
+  const handleChanged = () => {
+    setTechDrafts({})
+    onChanged()
+  }
+  const c = useCollection<Project>('projects', projects, handleChanged, () => ({
     slug: `new-project-${Date.now().toString(36)}`,
     title: 'New project',
     blurb: '',
@@ -140,8 +146,11 @@ export default function ProjectsEditor({
           <TextField
             label="Tech stack"
             hint="Comma separated."
-            value={project.tech.join(', ')}
-            onChange={(v) => c.edit(project.id, { tech: commasToArray(v) })}
+            value={techDrafts[project.id] ?? project.tech.join(', ')}
+            onChange={(v) => {
+              setTechDrafts((drafts) => ({ ...drafts, [project.id]: v }))
+              c.edit(project.id, { tech: commasToArray(v) })
+            }}
             placeholder=".NET 8, Blazor, SQL Server"
           />
 
