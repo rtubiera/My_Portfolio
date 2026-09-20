@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>Delson James Tubiera — Full Stack .NET Developer</title>
+    <meta
+      name="description"
+      content="Software Developer II specialising in .NET 8, Blazor, and ASP.NET Core. Building enterprise banking and payment platforms in Metro Manila."
+    />
+    <meta name="theme-color" content="#0a0a0b" />
+    <meta name="author" content="Delson James Tubiera" />
+
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Delson James Tubiera — Full Stack .NET Developer"
+    />
+    <meta
+      property="og:description"
+      content="Software Developer II specialising in .NET 8, Blazor, and ASP.NET Core. Building enterprise banking and payment platforms in Metro Manila."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Set the theme before first paint so there is no light/dark flash. -->
+    <script>
+      ;(function () {
+        try {
+          // Dark is the default. The visitor's OS preference is deliberately
+          // ignored — only an explicit click on the toggle changes it, and
+          // that choice is remembered here.
+          var stored = localStorage.getItem('portfolio-theme-v2')
+          var theme = stored === 'dark' || stored === 'light' ? stored : 'dark'
+          document.documentElement.dataset.theme = theme
+          if (theme === 'light') {
+            document
+              .querySelector('meta[name="theme-color"]')
+              .setAttribute('content', '#fbfaf8')
+          }
+        } catch (e) {
+          document.documentElement.dataset.theme = 'dark'
+        }
+      })()
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
