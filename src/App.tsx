@@ -92,12 +92,32 @@ function Shell() {
   }, [tickMs])
 
   useEffect(() => {
-    applyFavicon(
-      content.settings.favicon_url
+    applyFavicon({
+      faviconUrl: content.settings.favicon_url
         ? mediaUrl(content.settings.favicon_url)
         : null,
-    )
-  }, [content.settings.favicon_url])
+      logoUrl: content.settings.logo_url
+        ? mediaUrl(content.settings.logo_url)
+        : null,
+      logoText: content.settings.logo_text,
+      logoMark: content.settings.logo_mark,
+      faviconBgColor: content.settings.favicon_bg_color,
+      faviconTextColor: content.settings.favicon_text_color,
+      accentColor: content.settings.accent_color,
+      matchNavColors: content.settings.favicon_match_nav,
+    })
+  }, [
+    content.settings.favicon_url,
+    content.settings.logo_url,
+    content.settings.logo_text,
+    content.settings.logo_mark,
+    content.settings.favicon_bg_color,
+    content.settings.favicon_text_color,
+    content.settings.favicon_match_nav,
+    content.settings.accent_color,
+    content.settings.theme_preset,
+    theme,
+  ])
 
   if (isAdmin) {
     return (
@@ -130,7 +150,8 @@ function Shell() {
       ? mediaUrl(content.settings.logo_url)
       : null,
     logoText: content.settings.logo_text,
-    siteName: content.settings.name,
+    logoMark: content.settings.logo_mark,
+    siteName: content.settings.name || 'Portfolio',
   }
 
   return (

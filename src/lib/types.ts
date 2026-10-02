@@ -8,6 +8,7 @@ import type {
   ExperienceLayout,
   FontPairId,
   HeroLayout,
+  LogoMarkId,
   PresetId,
   SkillsLayout,
   WorkLayout,
@@ -53,6 +54,10 @@ export type SiteSettings = {
   logo_url: string | null
   favicon_url: string | null
   logo_text: string
+  logo_mark: LogoMarkId
+  favicon_bg_color: string
+  favicon_text_color: string
+  favicon_match_nav: boolean
   hero_layout: HeroLayout
   hero_image_url: string | null
   theme_preset: PresetId

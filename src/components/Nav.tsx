@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Close, Menu, Moon, Sun } from './Icons'
 import { useActiveSection } from '../lib/hooks'
+import { LOGO_MARKS, type LogoMarkId } from '../lib/theme'
 
 const SECTIONS = [
   { id: 'work', label: 'Work' },
@@ -22,6 +23,7 @@ type Props = {
   anchorsAreLinks?: boolean
   logoUrl?: string | null
   logoText?: string
+  logoMark?: LogoMarkId
   siteName?: string
 }
 
@@ -31,6 +33,7 @@ export default function Nav({
   anchorsAreLinks = false,
   logoUrl,
   logoText,
+  logoMark = 'dot',
   siteName = 'Home',
 }: Props) {
   const [open, setOpen] = useState(false)
@@ -65,8 +68,12 @@ export default function Nav({
             <img className="nav__logo" src={logoUrl} alt={siteName} />
           ) : (
             <>
-              {logoText || 'DJT'}
-              <span>.</span>
+              {logoText || 'Portfolio'}
+              {logoMark !== 'none' && (
+                <span className="nav__mark" aria-hidden="true">
+                  {LOGO_MARKS.find((mark) => mark.id === logoMark)?.glyph ?? '.'}
+                </span>
+              )}
             </>
           )}
         </Link>

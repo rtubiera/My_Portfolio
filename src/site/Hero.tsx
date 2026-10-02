@@ -11,7 +11,7 @@ export default function Hero({ settings }: { settings: SiteSettings }) {
   // photo layouts still work the moment you switch to them.
   const rawImage = settings.hero_image_url || settings.avatar_url
   const image = rawImage ? mediaUrl(rawImage) : null
-  const hasPhoto = layout !== 'editorial' && image !== null
+  const hasPhoto = layout !== 'editorial' && layout !== 'minimal' && image !== null
 
   const status = settings.available_note && (
     <p className="hero__status">

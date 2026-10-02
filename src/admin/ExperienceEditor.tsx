@@ -96,7 +96,7 @@ export default function ExperienceEditor({
               label="Location"
               value={item.location}
               onChange={(v) => c.edit(item.id, { location: v })}
-              placeholder="Makati City"
+              placeholder="City, Region"
             />
           </div>
 

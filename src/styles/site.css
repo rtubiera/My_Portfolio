@@ -140,7 +140,7 @@
   letter-spacing: 0.02em;
 }
 
-.nav__brand span {
+.nav__brand .nav__mark {
   color: var(--accent);
 }
 
@@ -397,6 +397,38 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2xs);
+}
+
+/* -- Hero layout: minimal (centered copy, no grid texture) ---------------- */
+
+.hero--minimal {
+  display: grid;
+  align-items: center;
+  min-height: min(76dvh, 720px);
+  padding-block: var(--space-3xl);
+}
+
+.hero--minimal::before {
+  display: none;
+}
+
+.hero--minimal .hero__inner {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.hero--minimal .hero__copy {
+  max-width: 60ch;
+}
+
+.hero--minimal .hero__role,
+.hero--minimal .hero__actions {
+  justify-content: center;
+}
+
+.hero--minimal .hero__intro {
+  margin-inline: auto;
 }
 
 /* -- Hero layout: portrait (full-bleed photo, copy overlaid) --------------- */

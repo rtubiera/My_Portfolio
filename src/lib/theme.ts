@@ -7,7 +7,7 @@
    inline styles on <html> would override both at once.
    ========================================================================== */
 
-export type HeroLayout = 'editorial' | 'portrait' | 'split' | 'studio' | 'profile'
+export type HeroLayout = 'editorial' | 'minimal' | 'portrait' | 'split' | 'studio' | 'profile'
 export type WorkLayout = 'list' | 'grid' | 'cards' | 'carousel' | 'showcase'
 export type SkillsLayout = 'grouped' | 'icons' | 'tiles' | 'orbit'
 export type ExperienceLayout = 'rows' | 'timeline' | 'cards' | 'spotlight'
@@ -33,8 +33,23 @@ export type BackgroundEffect =
   | 'galaxy'
   | 'grain'
 export type EffectIntensity = 'subtle' | 'medium' | 'heavy'
-export type PresetId = 'obsidian' | 'midnight' | 'slate' | 'espresso'
+export type PresetId = 'obsidian' | 'midnight' | 'slate' | 'espresso' | 'petal'
 export type FontPairId = 'inter' | 'sora' | 'space' | 'outfit' | 'serif' | 'editorial'
+export type LogoMarkId = 'dot' | 'sparkle' | 'flower' | 'heart' | 'star' | 'none'
+
+export const LOGO_MARKS: { id: LogoMarkId; label: string; glyph: string }[] = [
+  { id: 'dot', label: 'Dot', glyph: '.' },
+  { id: 'sparkle', label: 'Sparkle', glyph: '✦' },
+  { id: 'flower', label: 'Flower', glyph: '✿' },
+  { id: 'heart', label: 'Heart', glyph: '♥' },
+  { id: 'star', label: 'Star', glyph: '★' },
+  { id: 'none', label: 'None', glyph: '' },
+]
+
+export const DEFAULT_FAVICON_COLORS = {
+  background: '#e9a94b',
+  text: '#12100b',
+}
 
 export type ThemeChoice = {
   hero_layout: HeroLayout
@@ -190,6 +205,37 @@ export const PRESETS: Preset[] = [
       inkSoft: '#4a4038',
       inkMuted: '#766a5e',
       inkFaint: '#a3968a',
+    },
+  },
+  {
+    id: 'petal',
+    label: 'Petal',
+    description: 'Minimalist rose-tinted neutrals with a soft editorial feel.',
+    dark: {
+      bg: '#151313',
+      bgRaised: '#1c1919',
+      bgInset: '#100e0e',
+      surface: '#211d1d',
+      surfaceHover: '#292424',
+      line: '#383030',
+      lineStrong: '#4a3e3f',
+      ink: '#f5f0ef',
+      inkSoft: '#c8bdbc',
+      inkMuted: '#958788',
+      inkFaint: '#685d5e',
+    },
+    light: {
+      bg: '#fbf8f7',
+      bgRaised: '#ffffff',
+      bgInset: '#f4eceb',
+      surface: '#ffffff',
+      surfaceHover: '#f8f2f1',
+      line: '#e8dedd',
+      lineStrong: '#d4c5c4',
+      ink: '#282223',
+      inkSoft: '#55494a',
+      inkMuted: '#817475',
+      inkFaint: '#a99c9c',
     },
   },
 ]
@@ -507,7 +553,7 @@ export function resolveFontPair(id: string | undefined): FontPair {
 }
 
 export function resolveHeroLayout(id: string | undefined): HeroLayout {
-  return id === 'portrait' || id === 'split' || id === 'studio' || id === 'profile'
+  return id === 'minimal' || id === 'portrait' || id === 'split' || id === 'studio' || id === 'profile'
     ? id
     : 'editorial'
 }
@@ -693,22 +739,96 @@ function accentVars(accent: string): string {
 const STYLE_ID = 'theme-overrides'
 const FONT_LINK_ID = 'theme-fonts'
 
-const FAVICON_FALLBACK = '/favicon.svg'
+type FaviconOptions = {
+  faviconUrl?: string | null
+  logoUrl?: string | null
+  logoText?: string | null
+  logoMark?: LogoMarkId
+  faviconBgColor?: string | null
+  faviconTextColor?: string | null
+  accentColor?: string | null
+  matchNavColors?: boolean
+}
 
-/**
- * Points the browser tab icon at an uploaded file.
- *
- * The type attribute is rewritten alongside the href because a stale
- * `image/svg+xml` on a PNG makes some browsers refuse to render it. Passing a
- * falsy url restores the bundled default.
- */
-export function applyFavicon(url: string | null | undefined) {
+function escapeXml(value: string) {
+  return value.replace(/[&<>"']/g, (char) => {
+    const entities: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&apos;',
+    }
+    return entities[char]
+  })
+}
+
+function wordmarkFavicon(
+  text: string,
+  markId: LogoMarkId,
+  rawBackground: string,
+  rawTextColor: string,
+  rawMarkColor: string,
+) {
+  const monogram = [...(text.trim() || 'D')].slice(0, 3).join('').toUpperCase()
+  const fontSize = monogram.length === 1 ? 36 : monogram.length === 2 ? 28 : 22
+  const background = isHex(rawBackground)
+    ? rawBackground
+    : DEFAULT_FAVICON_COLORS.background
+  const textColor = isHex(rawTextColor)
+    ? rawTextColor
+    : DEFAULT_FAVICON_COLORS.text
+  const markColor = isHex(rawMarkColor) ? rawMarkColor : textColor
+  const glyph = LOGO_MARKS.find((mark) => mark.id === markId)?.glyph ?? '.'
+  const mark = !glyph
+    ? ''
+    : markId === 'dot'
+      ? `<circle cx="53" cy="52" r="3.5" fill="${markColor}"/>`
+      : `<text x="53" y="56" font-family="sans-serif" font-size="17" text-anchor="middle" fill="${markColor}">${escapeXml(glyph)}</text>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="${background}"/><text x="32" y="39" font-family="sans-serif" font-size="${fontSize}" font-weight="700" text-anchor="middle" fill="${textColor}">${escapeXml(monogram)}</text>${mark}</svg>`
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`
+}
+
+/** Uses an explicit favicon, then the logo image, then a generated wordmark icon. */
+export function applyFavicon({
+  faviconUrl,
+  logoUrl,
+  logoText = 'Portfolio',
+  logoMark = 'dot',
+  faviconBgColor = DEFAULT_FAVICON_COLORS.background,
+  faviconTextColor = DEFAULT_FAVICON_COLORS.text,
+  accentColor = DEFAULT_THEME.accent_color,
+  matchNavColors = true,
+}: FaviconOptions) {
   if (typeof document === 'undefined') return
 
-  const href = url || FAVICON_FALLBACK
+  const rootStyle = getComputedStyle(document.documentElement)
+  const navBackground = rootStyle.getPropertyValue('--bg').trim()
+  const navText = rootStyle.getPropertyValue('--ink').trim()
+  const navAccent = rootStyle.getPropertyValue('--accent').trim()
+  const background = matchNavColors && isHex(navBackground)
+    ? navBackground
+    : faviconBgColor || DEFAULT_FAVICON_COLORS.background
+  const textColor = matchNavColors && isHex(navText)
+    ? navText
+    : faviconTextColor || DEFAULT_FAVICON_COLORS.text
+  const markColor = isHex(navAccent)
+    ? navAccent
+    : accentColor || DEFAULT_THEME.accent_color
+  const href =
+    faviconUrl ||
+    logoUrl ||
+    wordmarkFavicon(
+      logoText || 'P',
+      logoMark,
+      background,
+      textColor,
+      markColor,
+    )
   const ext = href.split('?')[0].split('.').pop()?.toLowerCase()
-  const type =
-    ext === 'svg'
+  const type = href.startsWith('data:image/svg+xml')
+    ? 'image/svg+xml'
+    : ext === 'svg'
       ? 'image/svg+xml'
       : ext === 'png'
         ? 'image/png'

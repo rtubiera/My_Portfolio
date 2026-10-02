@@ -412,6 +412,29 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.logo-mark-grid {
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+}
+
+.favicon-color-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-s);
+}
+
+.logo-mark-choice {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.logo-mark-choice__glyph {
+  min-width: 1.25rem;
+  color: var(--accent);
+  font-size: 1.15rem;
+  text-align: center;
+}
+
 .choice {
   display: grid;
   gap: 0.45rem;

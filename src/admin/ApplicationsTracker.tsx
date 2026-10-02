@@ -367,7 +367,7 @@ function Tracker({
                 label="Location"
                 value={app.location}
                 onChange={(v) => c.edit(app.id, { location: v })}
-                placeholder="Makati City"
+                placeholder="City, Region"
               />
               <SelectField
                 label="Work setup"

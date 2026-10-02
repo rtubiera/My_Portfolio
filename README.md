@@ -169,8 +169,8 @@ back to the Editorial layout — the site never renders an empty frame.
 
 - **Logo** — shown in the nav at 24px tall. There is one logo for both themes,
   so pick an SVG or transparent PNG that reads on a light *and* dark canvas.
-- **Wordmark** — the text fallback when no logo image is set (currently `DJT`),
-  with a dot in your accent colour appended automatically.
+- **Wordmark** — the text fallback when no logo image is set, with a selectable
+  accent mark or no mark.
 - **Favicon** — the browser tab icon. Square SVG or 512×512 PNG. Tabs are tiny,
   so a single letter beats a full logo.
 

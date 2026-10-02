@@ -31,7 +31,11 @@ create table if not exists public.site_settings (
   -- Appearance, all editable from the CMS "Theme" tab.
   logo_url       text,
   favicon_url    text,
-  logo_text      text not null default 'DJT',        -- wordmark when no logo image
+  logo_text      text not null default '',           -- wordmark when no logo image
+  logo_mark      text not null default 'dot',        -- dot | sparkle | flower | heart | star | none
+  favicon_bg_color   text not null default '#e9a94b',
+  favicon_text_color text not null default '#12100b',
+  favicon_match_nav  boolean not null default true,
   hero_layout    text not null default 'editorial',  -- editorial | portrait | split | studio | profile
   hero_image_url text,
   theme_preset   text not null default 'obsidian',   -- obsidian | midnight | slate | espresso
@@ -62,7 +66,7 @@ alter table public.site_settings
 
 alter table public.site_settings drop constraint if exists site_settings_hero_layout_check;
 alter table public.site_settings add constraint site_settings_hero_layout_check
-  check (hero_layout in ('editorial', 'portrait', 'split', 'studio', 'profile'));
+  check (hero_layout in ('editorial', 'minimal', 'portrait', 'split', 'studio', 'profile'));
 
 -- theme_preset holds either a built-in id or the uuid of a theme_palettes row,
 -- so it deliberately has no allow-list constraint.
@@ -101,8 +105,25 @@ alter table public.site_settings add constraint site_settings_experience_layout_
 alter table public.site_settings
   add column if not exists logo_url     text,
   add column if not exists favicon_url  text,
-  add column if not exists logo_text    text not null default 'DJT',
+  add column if not exists logo_text    text not null default '',
+  add column if not exists logo_mark    text not null default 'dot',
+  add column if not exists favicon_bg_color text not null default '#e9a94b',
+  add column if not exists favicon_text_color text not null default '#12100b',
+  add column if not exists favicon_match_nav boolean not null default true,
   add column if not exists og_image_url text;
+
+alter table public.site_settings drop constraint if exists site_settings_logo_mark_check;
+alter table public.site_settings add constraint site_settings_logo_mark_check
+  check (logo_mark in ('dot', 'sparkle', 'flower', 'heart', 'star', 'none'));
+
+alter table public.site_settings
+  drop constraint if exists site_settings_favicon_bg_color_check,
+  drop constraint if exists site_settings_favicon_text_color_check;
+alter table public.site_settings
+  add constraint site_settings_favicon_bg_color_check
+    check (favicon_bg_color ~* '^#[0-9a-f]{6}$'),
+  add constraint site_settings_favicon_text_color_check
+    check (favicon_text_color ~* '^#[0-9a-f]{6}$');
 
 alter table public.site_settings
   add column if not exists about_layout   text not null default 'sidebar',
@@ -451,203 +472,13 @@ create policy "authenticated write documents"
   using (bucket_id = 'documents') with check (bucket_id = 'documents');
 
 -- ---------------------------------------------------------------------------
---  4. SEED — your resume content. Only inserts if the table is empty,
---     so re-running this file will never clobber edits you made in /admin.
+--  4. SEED — create only the empty singleton settings row. Add portfolio
+--     content in /admin; re-running this file never overwrites existing data.
 -- ---------------------------------------------------------------------------
 
-insert into public.site_settings (
-  id, name, role, tagline, hero_intro, about, location, email, phone,
-  available, available_note, socials, metrics, seo_title, seo_description
-) values (
-  1,
-  'Delson James Tubiera',
-  'Software Developer II',
-  'Full Stack · .NET / Blazor',
-  'I build and maintain enterprise .NET systems for banking — payment platforms, core-banking API integrations, and the automation tooling that keeps them shippable.',
-  'I''m a full stack developer based in Makati City, currently building Biller Plus, the enterprise bills payment platform at Rizal Commercial Banking Corporation. My work sits where reliability actually matters: payment posting through Finacle core banking, rate limiting and reverse proxying to keep APIs standing up under load, and production monitoring when something goes wrong at 2am.
-
-Before banking I spent time in GIS web services, billing systems, and financial services production support — the kind of work that teaches you to care about query plans and error logs. I also enjoy building tools for the people around me: most recently a low-code automation testing platform that let QA engineers with no coding background write and run their own test suites.',
-  'Makati City, Metro Manila',
-  'delsonjames17@gmail.com',
-  '+63 908 930 9958',
-  true,
-  'Open to senior full stack and backend roles',
-  '[{"label":"GitHub","url":"https://github.com/Delson-James17"},
-    {"label":"LinkedIn","url":"https://www.linkedin.com/in/delson-james-tubiera/"},
-    {"label":"Email","url":"mailto:delsonjames17@gmail.com"}]'::jsonb,
-  '[{"value":"5+","label":"Years building for the web"},
-    {"value":"110x","label":"Faster billing file processing"},
-    {"value":"4","label":"Enterprise clients shipped for"}]'::jsonb,
-  'Delson James Tubiera — Full Stack .NET Developer',
-  'Software Developer II specialising in .NET 8, Blazor, and ASP.NET Core. Building enterprise banking and payment platforms in Metro Manila.'
-) on conflict (id) do nothing;
-
-insert into public.projects (slug, title, blurb, description, role, year, tech, highlights, featured, sort_order)
-select * from (values
-  (
-    'biller-plus',
-    'Biller Plus',
-    'RCBC''s enterprise bills payment platform — .NET 8, Blazor, and Finacle core banking integration.',
-    'Biller Plus is Rizal Commercial Banking Corporation''s enterprise bills payment platform. I develop and maintain the system end to end: an ASP.NET Core Web API backend on .NET 8, a Blazor front end, and Microsoft SQL Server for persistence.
-
-The interesting problems here are integration and resilience. Payment posting and account services run through Finacle scripting against the bank''s core system, so correctness is non-negotiable. On the edge, I implemented rate limiting, load balancing, and a reverse proxy layer to hold API throughput and availability up under abusive traffic.',
-    'Software Developer II',
-    '2025 — Present',
-    array['.NET 8','ASP.NET Core Web API','Blazor','SQL Server','Finacle Scripting'],
-    array['Integrated payment posting and account services with the bank''s Finacle core',
-          'Added rate limiting, load balancing and a reverse proxy to protect API throughput',
-          'Maintain production monitoring and incident response for a live banking platform'],
-    true, 1
-  ),
-  (
-    'qa-automation-platform',
-    'Low-Code QA Automation Platform',
-    'A test authoring platform that let QA engineers with zero coding background build and run automated suites.',
-    'The team was fully dependent on manual regression testing. I designed and built a low-code automation testing platform on Playwright, Appium, and Electron that lets QA engineers author and execute automated tests without writing code.
-
-It handles single and bulk API testing, web UI testing, and mobile testing from one interface. It runs from a CLI and generates its own CI/CD assets — Dockerfiles plus AWS and Azure YAML pipeline configs. It also performs security scanning for CSRF, brute-force, and SQL injection vulnerabilities, and auto-generates both executable test scripts and test case documentation from whatever the user builds.',
-    'Designer & Lead Developer',
-    '2025',
-    array['Playwright','Appium','Electron','Docker','AWS','Azure','CI/CD'],
-    array['Removed the team''s dependency on manual regression testing',
-          'One interface for API, web UI, and mobile test authoring',
-          'Generates Dockerfiles and AWS/Azure YAML pipeline configuration',
-          'Security scanning for CSRF, brute-force and SQL injection',
-          'Auto-generates executable scripts and test case documentation'],
-    true, 2
-  ),
-  (
-    'billing-system',
-    'Billing System — 110x Faster',
-    'Cut Excel processing in a production billing module from 15 seconds to 0.135 seconds.',
-    'Built and maintained a billing system on ASP.NET Core MVC with Microsoft SQL Server, implementing the business logic and the integration layer.
-
-The result I''m most pleased with is a performance one. The module''s Excel file processing took 15 seconds per run. After reworking how the data was read and processed, the same job finished in 0.135 seconds — a 99.10% reduction, and a 110x speed increase.',
-    'Full Stack Developer',
-    '2024 — 2025',
-    array['ASP.NET Core MVC','C#','SQL Server','Entity Framework'],
-    array['15s → 0.135s Excel processing: 99.10% reduction, 110x faster',
-          'Designed the database architecture for scalability and maintainability',
-          'Built internal C# and JavaScript libraries that cut recurring bugs across projects'],
-    true, 3
-  ),
-  (
-    'gis-web-services',
-    'GIS Web Services Platform',
-    'Scalable ASP.NET Web API and WCF services backing GIS applications on Oracle.',
-    'Developed and integrated scalable web services using ASP.NET Web API and WCF for GIS applications, streamlining data management against an Oracle database.
-
-I also led the planning and design of the database architecture across company projects, with a focus on scalability, efficiency, and long-term maintainability — and helped establish the team''s programming practices for keeping the codebase clean and consistent.',
-    'Full Stack Developer',
-    '2024 — 2025',
-    array['ASP.NET Web API','WCF','Oracle','PL/SQL','OpenLayers'],
-    array['Led database architecture planning across company projects',
-          'Streamlined GIS data management on Oracle',
-          'Established team-wide programming standards and review practices'],
-    false, 4
-  ),
-  (
-    'pjli-core-platform',
-    'Financial Services Core Platform',
-    'Feature work, internal APIs, and production support for PJ Lhuillier''s core web platform.',
-    'Developed features and resolved defects on the core web platform of a major financial services provider, and built the internal APIs consumed by the organisation''s main web service.
-
-A large part of this role was production support — investigating live errors, performing data fixes, and shipping bug fixes under tight turnaround windows. I also wrote SQL scripts and stored procedures to optimise database operations and extend system functionality.',
-    'Software Engineer',
-    '2023 — 2024',
-    array['C#','ASP.NET MVC','REST API','SQL Server','Jira'],
-    array['Top Performer Awardee, PJ Lhuillier Group of Companies (Jan 2024)',
-          'Built internal APIs consumed by the organisation''s main web service',
-          'Production support: live error investigation, data fixes, tight-turnaround releases'],
-    false, 5
-  )
-) as v
-where not exists (select 1 from public.projects);
-
-insert into public.experiences (company, client, role, period, location, summary, bullets, tech, sort_order)
-select * from (values
-  (
-    'Vertere Global Solutions, Inc.',
-    'Rizal Commercial Banking Corporation (RCBC)',
-    'Software Developer II',
-    'Sep 2025 — Present',
-    'Makati City',
-    'Building and maintaining RCBC''s enterprise bills payment platform, plus the automation tooling around it.',
-    array['Develop and maintain Biller Plus, RCBC''s enterprise bills payment platform on .NET 8, ASP.NET Core Web API, Blazor and SQL Server',
-          'Build and consume core banking APIs through Finacle scripting for payment posting and account services',
-          'Implemented rate limiting, load balancing and a reverse proxy layer to strengthen API throughput and availability',
-          'Maintain and monitor production applications, including in-app chat enhancements and incident monitoring',
-          'Designed and built a low-code automation testing platform (Playwright, Appium, Electron) for non-coding QA engineers'],
-    array['.NET 8','Blazor','ASP.NET Core','SQL Server','Finacle','Playwright'],
-    1
-  ),
-  (
-    'Pacific Data Resources (Asia), Inc.',
-    '',
-    'Software Developer I — Full Stack',
-    'Sep 2024 — Sep 2025',
-    'Metro Manila',
-    'GIS web services, billing systems, and the database architecture behind them.',
-    array['Developed scalable web services using ASP.NET Web API and WCF for GIS applications on Oracle',
-          'Led planning and design of database architecture across company projects',
-          'Built the Billing System on ASP.NET Core MVC with complex business logic and SQL Server integration',
-          'Cut Excel file processing from 15s to 0.135s — a 99.10% reduction and 110x speed increase',
-          'Created internal C# and JavaScript libraries that reduced recurring bugs across projects',
-          'Established best programming practices for clean, readable, consistent code'],
-    array['ASP.NET Core MVC','WCF','Oracle','SQL Server','jQuery','Bootstrap'],
-    2
-  ),
-  (
-    'Collabera Digital',
-    'PJ Lhuillier, Inc. (PJLI)',
-    'Software Engineer — Full Stack',
-    'Feb 2023 — Jul 2024',
-    'Metro Manila',
-    'Feature delivery and production support on a financial services core web platform.',
-    array['Developed features and resolved defects for a financial services provider''s core web platform',
-          'Built internal APIs consumed by the organisation''s main web service',
-          'Handled production support: error investigation, data fixes, and bug fixes under tight turnaround',
-          'Developed SQL scripts and stored procedures to optimise database operations',
-          'Tracked and organised delivery work using Jira boards'],
-    array['C#','ASP.NET MVC','REST API','SQL Server','SSMS','Jira'],
-    3
-  ),
-  (
-    'Tilden Tasks LLC dba WP Tangerine',
-    '',
-    'Website Developer',
-    'Jan 2020 — Feb 2023',
-    'Berkeley, California (Remote)',
-    'E-commerce and client web work across .NET, WordPress and Shopify.',
-    array['Developed an e-commerce project using C# and ASP.NET Core',
-          'Built and customised WordPress and Shopify sites with e-commerce solutions',
-          'Applied HTML, CSS, JavaScript, C# and responsive design across client sites'],
-    array['C#','ASP.NET Core','WordPress','Shopify','JavaScript'],
-    4
-  )
-) as v
-where not exists (select 1 from public.experiences);
-
-insert into public.skill_groups (label, items, sort_order)
-select * from (values
-  ('Back-End',            array['C#','.NET 8','.NET Core','ASP.NET Core Web API','ASP.NET Core MVC','Entity Framework','LINQ','ADO.NET','WCF','REST API','SOAP API','Finacle Scripting'], 1),
-  ('Front-End',           array['Blazor (WASM / Server)','React.js','TypeScript','JavaScript','HTML','CSS','jQuery','SyncFusion','Bootstrap'], 2),
-  ('Database',            array['Microsoft SQL Server','Oracle','PL/SQL','MySQL','Stored Procedures','Query Optimization','Supabase','Firebase'], 3),
-  ('Architecture & Security', array['Rate Limiting','Load Balancing','Reverse Proxy','API Gateway','CSRF Mitigation','SQL Injection Mitigation','Brute-Force Mitigation','Application Monitoring'], 4),
-  ('Testing & Automation',array['Playwright','Appium','Electron','API & UI Automation','Mobile Test Automation','Postman','SoapUI','Test Documentation'], 5),
-  ('DevOps & Cloud',      array['Docker','Kubernetes','CI/CD Pipelines','AWS','Azure','YAML Pipelines','IIS','Netlify','Vercel'], 6),
-  ('Tools',               array['Git','GitHub','GitLab','Visual Studio','VS Code','Jira','SharePoint','Notion','WordPress','Shopify'], 7)
-) as v
-where not exists (select 1 from public.skill_groups);
-
-insert into public.certifications (title, issuer, date_label, sort_order)
-select * from (values
-  ('Top Performer Awardee',                                  'PJ Lhuillier Group of Companies', 'January 2024', 1),
-  ('Amazing .NET Developer Training Award, Weeks 1–4',        'Collabera Digital',               'March 2023',   2),
-  ('Certificate of Completion: .NET Full Stack',              'Collabera Digital',               'May 2023',     3),
-  ('Responsive Web Design Certification',                     'freeCodeCamp',                    'October 2022', 4)
-) as v
-where not exists (select 1 from public.certifications);
+insert into public.site_settings (id)
+values (1)
+on conflict (id) do nothing;
 
 -- ============================================================================
 --  Done. Next: Authentication → Users → "Add user" to create your admin login.

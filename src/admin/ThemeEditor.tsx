@@ -4,9 +4,11 @@ import { supabase } from '../lib/supabase'
 import {
   ACCENTS,
   DEFAULT_THEME,
+  DEFAULT_FAVICON_COLORS,
   DEFAULT_WORK_LIMIT,
   EFFECT_META,
   FONT_PAIRS,
+  LOGO_MARKS,
   PRESETS,
   WORK_LIMITS,
   applyFavicon,
@@ -33,7 +35,7 @@ import { mediaUrl } from '../lib/supabase'
 import type { SiteSettings } from '../lib/types'
 import PaletteManager from './PaletteManager'
 import ScheduleManager from './ScheduleManager'
-import { FileUpload, SaveBar, TextField, type SaveState } from './ui'
+import { FileUpload, SaveBar, TextField, Toggle, type SaveState } from './ui'
 import { useAutosave } from './useAutosave'
 
 const LAYOUTS: {
@@ -46,6 +48,12 @@ const LAYOUTS: {
     id: 'editorial',
     label: 'Editorial',
     description: 'Type only. Big name, no photo — the fastest to read.',
+    needsPhoto: false,
+  },
+  {
+    id: 'minimal',
+    label: 'Minimal',
+    description: 'Centered copy on a clean canvas, without the grid texture.',
     needsPhoto: false,
   },
   {
@@ -345,6 +353,15 @@ function LayoutPreview({ id }: { id: HeroLayout }) {
           <rect x="12" y="44" width="62" height="3" rx="1" fill={line} fillOpacity="0.3" />
           <rect x="12" y="55" width="24" height="8" rx="1.5" fill={line} fillOpacity="0.75" />
           <rect x="40" y="55" width="24" height="8" rx="1.5" fill="none" stroke={line} strokeOpacity="0.5" />
+        </>
+      )}
+      {id === 'minimal' && (
+        <>
+          <rect x="38" y="12" width="44" height="4" rx="2" fill={line} fillOpacity="0.35" />
+          <rect x="25" y="24" width="70" height="12" rx="1.5" fill={line} />
+          <rect x="34" y="42" width="52" height="3" rx="1" fill={line} fillOpacity="0.4" />
+          <rect x="43" y="49" width="34" height="3" rx="1" fill={line} fillOpacity="0.3" />
+          <rect x="45" y="59" width="30" height="7" rx="3.5" fill={line} fillOpacity="0.75" />
         </>
       )}
       {id === 'portrait' && (
@@ -703,6 +720,10 @@ type Draft = {
   logo_url: string | null
   favicon_url: string | null
   logo_text: string
+  logo_mark: SiteSettings['logo_mark']
+  favicon_bg_color: string
+  favicon_text_color: string
+  favicon_match_nav: boolean
   hero_layout: HeroLayout
   hero_image_url: string | null
   theme_preset: PresetId
@@ -726,7 +747,11 @@ function toDraft(settings: SiteSettings): Draft {
   return {
     logo_url: settings.logo_url ?? null,
     favicon_url: settings.favicon_url ?? null,
-    logo_text: settings.logo_text ?? 'DJT',
+    logo_text: settings.logo_text ?? '',
+    logo_mark: settings.logo_mark ?? 'dot',
+    favicon_bg_color: settings.favicon_bg_color ?? DEFAULT_FAVICON_COLORS.background,
+    favicon_text_color: settings.favicon_text_color ?? DEFAULT_FAVICON_COLORS.text,
+    favicon_match_nav: settings.favicon_match_nav ?? true,
     hero_layout: settings.hero_layout ?? DEFAULT_THEME.hero_layout,
     hero_image_url: settings.hero_image_url ?? null,
     theme_preset: settings.theme_preset ?? DEFAULT_THEME.theme_preset,
@@ -778,8 +803,27 @@ export default function ThemeEditor({
     applyTheme(next, palettes)
     // Swap this tab's own icon too, so you can confirm the favicon renders
     // at real size before committing to it.
-    if ('favicon_url' in patch) {
-      applyFavicon(next.favicon_url ? mediaUrl(next.favicon_url) : null)
+    if (
+      'favicon_url' in patch ||
+      'logo_url' in patch ||
+      'logo_text' in patch ||
+      'logo_mark' in patch ||
+      'favicon_bg_color' in patch ||
+      'favicon_text_color' in patch ||
+      'favicon_match_nav' in patch ||
+      'theme_preset' in patch ||
+      'accent_color' in patch
+    ) {
+      applyFavicon({
+        faviconUrl: next.favicon_url ? mediaUrl(next.favicon_url) : null,
+        logoUrl: next.logo_url ? mediaUrl(next.logo_url) : null,
+        logoText: next.logo_text,
+        logoMark: next.logo_mark,
+        faviconBgColor: next.favicon_bg_color,
+        faviconTextColor: next.favicon_text_color,
+        accentColor: next.accent_color,
+        matchNavColors: next.favicon_match_nav,
+      })
     }
   }
 
@@ -789,6 +833,16 @@ export default function ThemeEditor({
       palette,
       ...palettes.filter((p) => p.id !== palette.id),
     ])
+    applyFavicon({
+      faviconUrl: draft.favicon_url ? mediaUrl(draft.favicon_url) : null,
+      logoUrl: draft.logo_url ? mediaUrl(draft.logo_url) : null,
+      logoText: draft.logo_text,
+      logoMark: draft.logo_mark,
+      faviconBgColor: draft.favicon_bg_color,
+      faviconTextColor: draft.favicon_text_color,
+      accentColor: draft.accent_color,
+      matchNavColors: draft.favicon_match_nav,
+    })
   }
 
   async function save() {
@@ -837,6 +891,10 @@ export default function ThemeEditor({
     settings.work_limit === undefined ||
     settings.about_layout === undefined ||
     settings.logo_text === undefined ||
+    settings.logo_mark === undefined ||
+    settings.favicon_bg_color === undefined ||
+    settings.favicon_text_color === undefined ||
+    settings.favicon_match_nav === undefined ||
     settings.background_effect === undefined
 
   return (
@@ -856,7 +914,7 @@ export default function ThemeEditor({
           Your database is missing some theme columns. Open Supabase → SQL
           Editor and run the files in{' '}
           <code className="code">supabase/migrations/</code> in order (002
-          through 012), then reload this page. You can preview choices below,
+          through 024), then reload this page. You can preview choices below,
           but saving will fail until you do.
         </p>
       )}
@@ -879,8 +937,12 @@ export default function ThemeEditor({
                 />
               ) : (
                 <span className="nav__brand">
-                  {draft.logo_text || 'DJT'}
-                  <span>.</span>
+                  {draft.logo_text || 'Portfolio'}
+                  {draft.logo_mark !== 'none' && (
+                    <span className="nav__mark" aria-hidden="true">
+                      {LOGO_MARKS.find((mark) => mark.id === draft.logo_mark)?.glyph}
+                    </span>
+                  )}
                 </span>
               )}
             </span>
@@ -897,11 +959,79 @@ export default function ThemeEditor({
 
           <TextField
             label="Wordmark"
-            hint="Used when no logo image is set. Keep it short — initials read best at nav size. A dot in your accent colour is added automatically."
+            hint="Used when no logo image is set. Keep it short — initials read best at nav size."
             value={draft.logo_text}
             onChange={(v) => edit({ logo_text: v })}
-            placeholder="DJT"
+            placeholder="Your name"
           />
+
+          <div className="field">
+            <span className="field__label">Wordmark mark</span>
+            <div className="choice-grid logo-mark-grid">
+              {LOGO_MARKS.map((mark) => (
+                <button
+                  key={mark.id}
+                  type="button"
+                  className="choice logo-mark-choice"
+                  data-selected={draft.logo_mark === mark.id}
+                  aria-pressed={draft.logo_mark === mark.id}
+                  onClick={() => edit({ logo_mark: mark.id })}
+                >
+                  <span className="logo-mark-choice__glyph" aria-hidden="true">
+                    {mark.glyph || ' '}
+                  </span>
+                  <span>{mark.label}</span>
+                </button>
+              ))}
+            </div>
+            <span className="field__hint">Choose the colored symbol beside your wordmark, or remove it.</span>
+          </div>
+
+          <Toggle
+            label="Match Nav preview colors"
+            checked={draft.favicon_match_nav}
+            onChange={(checked) => edit({ favicon_match_nav: checked })}
+          />
+
+          {!draft.favicon_match_nav && (
+            <>
+              <div className="favicon-color-fields">
+                {([
+                  ['favicon_bg_color', 'Favicon background'],
+                  ['favicon_text_color', 'Favicon text'],
+                ] as const).map(([key, label]) => (
+                  <label className="field" key={key}>
+                    <span className="field__label">{label}</span>
+                    <div className="custom-color__row">
+                      <input
+                        type="color"
+                        className="color-input"
+                        value={
+                          /^#[0-9a-fA-F]{6}$/.test(draft[key])
+                            ? draft[key]
+                            : DEFAULT_FAVICON_COLORS[
+                                key === 'favicon_bg_color' ? 'background' : 'text'
+                              ]
+                        }
+                        onChange={(event) => edit({ [key]: event.target.value })}
+                        aria-label={label}
+                      />
+                      <input
+                        className="input"
+                        value={draft[key]}
+                        onChange={(event) => edit({ [key]: event.target.value.trim() })}
+                        spellCheck={false}
+                        aria-label={`${label} hex value`}
+                      />
+                    </div>
+                  </label>
+                ))}
+              </div>
+              <p className="field__hint">
+                These colors apply to the generated wordmark favicon when matching is off. The mark keeps your Nav accent color.
+              </p>
+            </>
+          )}
 
           <FileUpload
             label="Favicon"
