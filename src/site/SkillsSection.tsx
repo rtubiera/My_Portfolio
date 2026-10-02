@@ -25,6 +25,10 @@ export default function SkillsSection({ groups, layout }: Props) {
     )
   }
 
+  if (mode === 'orbit') {
+    return <div className="skills skills--orbit"><SkillGroups groups={groups} /></div>
+  }
+
   return <SkillGroups groups={groups} />
 }
 

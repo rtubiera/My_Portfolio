@@ -167,6 +167,15 @@ export default function AboutSection({ settings }: { settings: SiteSettings }) {
     )
   }
 
+  if (mode === 'manifesto') {
+    return (
+      <div className="about about--manifesto">
+        <AboutBody text={settings.about} />
+        <div className="about__facts-strip"><Facts settings={settings} /></div>
+      </div>
+    )
+  }
+
   return (
     <div className="about">
       <AboutBody text={settings.about} />

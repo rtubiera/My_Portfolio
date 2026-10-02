@@ -76,6 +76,20 @@ export default function CertificationsSection({ items, layout }: Props) {
     )
   }
 
+  if (mode === 'shelf') {
+    return (
+      <div className="cert-shelf">
+        {items.map((cert) => (
+          <MaybeLink key={cert.id} url={cert.url} className="cert-shelf__item">
+            <span className="cert-shelf__year">{cert.date_label || 'Verified'}</span>
+            <strong>{cert.title}</strong>
+            <span>{cert.issuer}</span>
+          </MaybeLink>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="cert-list">
       {items.map((cert) => (

@@ -15,6 +15,9 @@ export default function ExperienceList({ items, layout }: Props) {
 
   if (mode === 'timeline') return <ExperienceTimeline items={items} />
   if (mode === 'cards') return <ExperienceCards items={items} />
+  if (mode === 'spotlight') {
+    return <div className="exp-spotlight"><ExperienceCards items={items} /></div>
+  }
   return <ExperienceRows items={items} />
 }
 

@@ -7,13 +7,13 @@
    inline styles on <html> would override both at once.
    ========================================================================== */
 
-export type HeroLayout = 'editorial' | 'portrait' | 'split'
-export type WorkLayout = 'list' | 'grid' | 'cards' | 'carousel'
-export type SkillsLayout = 'grouped' | 'icons' | 'tiles'
-export type ExperienceLayout = 'rows' | 'timeline' | 'cards'
-export type AboutLayout = 'sidebar' | 'portrait' | 'centered'
-export type CertsLayout = 'grid' | 'list' | 'badges'
-export type ContactLayout = 'split' | 'centered' | 'cards'
+export type HeroLayout = 'editorial' | 'portrait' | 'split' | 'studio' | 'profile'
+export type WorkLayout = 'list' | 'grid' | 'cards' | 'carousel' | 'showcase'
+export type SkillsLayout = 'grouped' | 'icons' | 'tiles' | 'orbit'
+export type ExperienceLayout = 'rows' | 'timeline' | 'cards' | 'spotlight'
+export type AboutLayout = 'sidebar' | 'portrait' | 'centered' | 'manifesto'
+export type CertsLayout = 'grid' | 'list' | 'badges' | 'shelf'
+export type ContactLayout = 'split' | 'centered' | 'cards' | 'signal'
 export type BackgroundEffect =
   | 'none'
   | 'snow'
@@ -31,9 +31,10 @@ export type BackgroundEffect =
   | 'astronaut'
   | 'websling'
   | 'galaxy'
+  | 'grain'
 export type EffectIntensity = 'subtle' | 'medium' | 'heavy'
 export type PresetId = 'obsidian' | 'midnight' | 'slate' | 'espresso'
-export type FontPairId = 'inter' | 'sora' | 'space' | 'outfit' | 'serif'
+export type FontPairId = 'inter' | 'sora' | 'space' | 'outfit' | 'serif' | 'editorial'
 
 export type ThemeChoice = {
   hero_layout: HeroLayout
@@ -282,6 +283,16 @@ export const FONT_PAIRS: FontPair[] = [
     ],
     displayTracking: '-0.01em',
   },
+  {
+    id: 'editorial',
+    label: 'Manrope + DM Mono',
+    description: 'Clean, wide and contemporary for a confident portfolio voice.',
+    display: `'Manrope', ${FALLBACK_SANS}`,
+    sans: `'Manrope', ${FALLBACK_SANS}`,
+    mono: `'DM Mono', ${FALLBACK_MONO}`,
+    families: ['Manrope:wght@400;500;600;700;800', 'DM+Mono:wght@400;500'],
+    displayTracking: '-0.035em',
+  },
 ]
 
 /* -- Colour maths ---------------------------------------------------------- */
@@ -496,11 +507,13 @@ export function resolveFontPair(id: string | undefined): FontPair {
 }
 
 export function resolveHeroLayout(id: string | undefined): HeroLayout {
-  return id === 'portrait' || id === 'split' ? id : 'editorial'
+  return id === 'portrait' || id === 'split' || id === 'studio' || id === 'profile'
+    ? id
+    : 'editorial'
 }
 
 export function resolveWorkLayout(id: string | undefined): WorkLayout {
-  return id === 'grid' || id === 'cards' || id === 'carousel' ? id : 'list'
+  return id === 'grid' || id === 'cards' || id === 'carousel' || id === 'showcase' ? id : 'list'
 }
 
 /** How many projects the work section shows before "Show more". */
@@ -522,25 +535,25 @@ export function resolveWorkLimit(value: number | null | undefined): number {
 }
 
 export function resolveSkillsLayout(id: string | undefined): SkillsLayout {
-  return id === 'icons' || id === 'tiles' ? id : 'grouped'
+  return id === 'icons' || id === 'tiles' || id === 'orbit' ? id : 'grouped'
 }
 
 export function resolveExperienceLayout(
   id: string | undefined,
 ): ExperienceLayout {
-  return id === 'timeline' || id === 'cards' ? id : 'rows'
+  return id === 'timeline' || id === 'cards' || id === 'spotlight' ? id : 'rows'
 }
 
 export function resolveAboutLayout(id: string | undefined): AboutLayout {
-  return id === 'portrait' || id === 'centered' ? id : 'sidebar'
+  return id === 'portrait' || id === 'centered' || id === 'manifesto' ? id : 'sidebar'
 }
 
 export function resolveCertsLayout(id: string | undefined): CertsLayout {
-  return id === 'list' || id === 'badges' ? id : 'grid'
+  return id === 'list' || id === 'badges' || id === 'shelf' ? id : 'grid'
 }
 
 export function resolveContactLayout(id: string | undefined): ContactLayout {
-  return id === 'centered' || id === 'cards' ? id : 'split'
+  return id === 'centered' || id === 'cards' || id === 'signal' ? id : 'split'
 }
 
 // Keep in step with the effect_schedules / site_settings check constraints
@@ -563,6 +576,7 @@ const EFFECT_IDS: BackgroundEffect[] = [
   'astronaut',
   'websling',
   'galaxy',
+  'grain',
 ]
 
 /** Label and one-line description for every effect, shared by the pickers. */
@@ -624,6 +638,10 @@ export const EFFECT_META: Record<
   galaxy: {
     label: 'Milky Way',
     description: 'The galactic band — nebula clouds, dust lanes, drifting stars.',
+  },
+  grain: {
+    label: 'Film grain',
+    description: 'A subtle paper-like texture with no moving particles.',
   },
 }
 

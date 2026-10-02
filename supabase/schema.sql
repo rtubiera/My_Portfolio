@@ -32,7 +32,7 @@ create table if not exists public.site_settings (
   logo_url       text,
   favicon_url    text,
   logo_text      text not null default 'DJT',        -- wordmark when no logo image
-  hero_layout    text not null default 'editorial',  -- editorial | portrait | split
+  hero_layout    text not null default 'editorial',  -- editorial | portrait | split | studio | profile
   hero_image_url text,
   theme_preset   text not null default 'obsidian',   -- obsidian | midnight | slate | espresso
   accent_color   text not null default '#e9a94b',
@@ -62,7 +62,7 @@ alter table public.site_settings
 
 alter table public.site_settings drop constraint if exists site_settings_hero_layout_check;
 alter table public.site_settings add constraint site_settings_hero_layout_check
-  check (hero_layout in ('editorial', 'portrait', 'split'));
+  check (hero_layout in ('editorial', 'portrait', 'split', 'studio', 'profile'));
 
 -- theme_preset holds either a built-in id or the uuid of a theme_palettes row,
 -- so it deliberately has no allow-list constraint.
@@ -70,7 +70,7 @@ alter table public.site_settings drop constraint if exists site_settings_theme_p
 
 alter table public.site_settings drop constraint if exists site_settings_font_pair_check;
 alter table public.site_settings add constraint site_settings_font_pair_check
-  check (font_pair in ('inter', 'sora', 'space', 'outfit', 'serif'));
+  check (font_pair in ('inter', 'sora', 'space', 'outfit', 'serif', 'editorial'));
 
 alter table public.site_settings drop constraint if exists site_settings_accent_color_check;
 alter table public.site_settings add constraint site_settings_accent_color_check
@@ -84,7 +84,7 @@ alter table public.site_settings
 
 alter table public.site_settings drop constraint if exists site_settings_work_layout_check;
 alter table public.site_settings add constraint site_settings_work_layout_check
-  check (work_layout in ('list', 'grid', 'cards', 'carousel'));
+  check (work_layout in ('list', 'grid', 'cards', 'carousel', 'showcase'));
 
 alter table public.site_settings drop constraint if exists site_settings_work_limit_check;
 alter table public.site_settings add constraint site_settings_work_limit_check
@@ -92,11 +92,11 @@ alter table public.site_settings add constraint site_settings_work_limit_check
 
 alter table public.site_settings drop constraint if exists site_settings_skills_layout_check;
 alter table public.site_settings add constraint site_settings_skills_layout_check
-  check (skills_layout in ('grouped', 'icons', 'tiles'));
+  check (skills_layout in ('grouped', 'icons', 'tiles', 'orbit'));
 
 alter table public.site_settings drop constraint if exists site_settings_experience_layout_check;
 alter table public.site_settings add constraint site_settings_experience_layout_check
-  check (experience_layout in ('rows', 'timeline', 'cards'));
+  check (experience_layout in ('rows', 'timeline', 'cards', 'spotlight'));
 
 alter table public.site_settings
   add column if not exists logo_url     text,
@@ -111,15 +111,15 @@ alter table public.site_settings
 
 alter table public.site_settings drop constraint if exists site_settings_about_layout_check;
 alter table public.site_settings add constraint site_settings_about_layout_check
-  check (about_layout in ('sidebar', 'portrait', 'centered'));
+  check (about_layout in ('sidebar', 'portrait', 'centered', 'manifesto'));
 
 alter table public.site_settings drop constraint if exists site_settings_certs_layout_check;
 alter table public.site_settings add constraint site_settings_certs_layout_check
-  check (certs_layout in ('grid', 'list', 'badges'));
+  check (certs_layout in ('grid', 'list', 'badges', 'shelf'));
 
 alter table public.site_settings drop constraint if exists site_settings_contact_layout_check;
 alter table public.site_settings add constraint site_settings_contact_layout_check
-  check (contact_layout in ('split', 'centered', 'cards'));
+  check (contact_layout in ('split', 'centered', 'cards', 'signal'));
 
 alter table public.site_settings
   add column if not exists background_effect text not null default 'none',
@@ -130,7 +130,7 @@ alter table public.site_settings add constraint site_settings_background_effect_
   check (background_effect in (
     'none', 'snow', 'stars', 'constellation', 'aurora', 'confetti', 'hearts',
     'bats', 'fireworks', 'leaves', 'petals', 'fireflies', 'matrix',
-    'astronaut', 'websling', 'galaxy'));
+    'astronaut', 'websling', 'galaxy', 'grain'));
 
 alter table public.site_settings drop constraint if exists site_settings_effect_intensity_check;
 alter table public.site_settings add constraint site_settings_effect_intensity_check

@@ -17,7 +17,7 @@ alter table public.site_settings
 -- honest at the source.
 alter table public.site_settings drop constraint if exists site_settings_hero_layout_check;
 alter table public.site_settings add constraint site_settings_hero_layout_check
-  check (hero_layout in ('editorial', 'portrait', 'split'));
+  check (hero_layout in ('editorial', 'portrait', 'split', 'studio', 'profile'));
 
 alter table public.site_settings drop constraint if exists site_settings_theme_preset_check;
 alter table public.site_settings add constraint site_settings_theme_preset_check

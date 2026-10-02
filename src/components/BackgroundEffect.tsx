@@ -139,6 +139,10 @@ export default function BackgroundEffect({ effect, intensity, theme }: Props) {
     )
   }
 
+  if (mode === 'grain') {
+    return <div className="fx fx--grain" data-intensity={level} aria-hidden="true" />
+  }
+
   return (
     <canvas
       ref={canvasRef}

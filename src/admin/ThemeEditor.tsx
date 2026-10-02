@@ -60,6 +60,18 @@ const LAYOUTS: {
     description: 'Copy on the left, a ring-framed photo on the right.',
     needsPhoto: true,
   },
+  {
+    id: 'studio',
+    label: 'Studio orange',
+    description: 'A bold orange art-direction frame with a large statement and image.',
+    needsPhoto: true,
+  },
+  {
+    id: 'profile',
+    label: 'Profile card',
+    description: 'A dark portrait-led profile with contact details and quick navigation.',
+    needsPhoto: true,
+  },
 ]
 
 const WORK_LAYOUTS: { id: WorkLayout; label: string; description: string }[] = [
@@ -84,6 +96,7 @@ const WORK_LAYOUTS: { id: WorkLayout; label: string; description: string }[] = [
     description:
       'The same cards on a swipeable track with arrows. Shows every project.',
   },
+  { id: 'showcase', label: 'Showcase', description: 'Large visual tiles with a bold editorial rhythm.' },
 ]
 
 /** "Show this many, then a button." 0 is the "no limit" option. */
@@ -112,6 +125,7 @@ const SKILLS_LAYOUTS: {
     label: 'Tiles',
     description: 'Bordered cards with a logo, still split by category.',
   },
+  { id: 'orbit', label: 'Orbit', description: 'A radial-feeling skill cloud with stronger visual grouping.' },
 ]
 
 const EXPERIENCE_LAYOUTS: {
@@ -134,6 +148,7 @@ const EXPERIENCE_LAYOUTS: {
     label: 'Cards',
     description: 'Each role in its own panel with an accent edge.',
   },
+  { id: 'spotlight', label: 'Spotlight', description: 'Featured role first, with a dramatic accent rail.' },
 ]
 
 const ABOUT_LAYOUTS: { id: AboutLayout; label: string; description: string }[] =
@@ -153,6 +168,7 @@ const ABOUT_LAYOUTS: { id: AboutLayout; label: string; description: string }[] =
       label: 'Centered',
       description: 'Round avatar on top, centred prose, facts in a strip.',
     },
+    { id: 'manifesto', label: 'Manifesto', description: 'Large statement copy with a compact facts rail.' },
   ]
 
 const CERTS_LAYOUTS: { id: CertsLayout; label: string; description: string }[] =
@@ -172,6 +188,7 @@ const CERTS_LAYOUTS: { id: CertsLayout; label: string; description: string }[] =
       label: 'Badges',
       description: 'Pill-shaped rows with an accent seal.',
     },
+    { id: 'shelf', label: 'Shelf', description: 'Horizontal credential cards designed for quick scanning.' },
   ]
 
 const CONTACT_LAYOUTS: {
@@ -194,6 +211,7 @@ const CONTACT_LAYOUTS: {
     label: 'Cards',
     description: 'Contact details in tiles above a panelled form.',
   },
+  { id: 'signal', label: 'Signal', description: 'A focused contact banner with direct links and a clear action.' },
 ]
 
 const EFFECTS = (Object.keys(EFFECT_META) as BackgroundEffect[]).map((id) => ({
@@ -230,6 +248,7 @@ type PreviewFamily = 'none' | 'aurora' | 'fall' | 'rise' | 'twinkle' | 'web'
 
 const PREVIEW_FAMILY: Record<BackgroundEffect, PreviewFamily> = {
   none: 'none',
+  grain: 'none',
   aurora: 'aurora',
   snow: 'fall',
   confetti: 'fall',
@@ -347,6 +366,26 @@ function LayoutPreview({ id }: { id: HeroLayout }) {
           <rect x="10" y="50" width="20" height="7" rx="1.5" fill={line} fillOpacity="0.75" />
           <circle cx="88" cy="37" r="21" fill="none" stroke={line} strokeOpacity="0.3" />
           <circle cx="88" cy="37" r="17" fill={line} fillOpacity="0.28" />
+        </>
+      )}
+      {id === 'studio' && (
+        <>
+          <rect x="1" y="1" width="118" height="72" rx="3" fill="#e85b2a" fillOpacity="0.55" />
+          <rect x="10" y="12" width="28" height="3" rx="1" fill={line} fillOpacity="0.75" />
+          <rect x="10" y="29" width="55" height="16" rx="1" fill={line} />
+          <circle cx="91" cy="39" r="22" fill={line} fillOpacity="0.3" />
+          <rect x="10" y="57" width="20" height="5" rx="2" fill={line} fillOpacity="0.8" />
+          <rect x="1" y="65" width="118" height="8" fill="#111" fillOpacity="0.85" />
+        </>
+      )}
+      {id === 'profile' && (
+        <>
+          <rect x="1" y="1" width="118" height="72" rx="3" fill={line} fillOpacity="0.08" />
+          <rect x="10" y="13" width="26" height="3" rx="1" fill="#ffc51b" />
+          <rect x="10" y="27" width="42" height="15" rx="1" fill={line} />
+          <path d="M76 73c0-16 8-27 18-27s18 11 18 27z" fill={line} fillOpacity="0.38" />
+          <circle cx="94" cy="29" r="12" fill={line} fillOpacity="0.38" />
+          <rect x="34" y="63" width="53" height="6" rx="3" fill={line} fillOpacity="0.4" />
         </>
       )}
     </svg>
@@ -584,7 +623,7 @@ function BlockPreview({
 }
 
 /** Contact "centered" and "cards" collide with names used above. */
-function ContactPreview({ kind }: { kind: 'centered' | 'cards' }) {
+function ContactPreview({ kind }: { kind: 'centered' | 'cards' | 'signal' }) {
   const c = 'currentColor'
   const bar = (x: number, y: number, w: number, h: number, o = 0.28) => (
     <rect x={x} y={y} width={w} height={h} rx="1.2" fill={c} fillOpacity={o} />
@@ -601,6 +640,14 @@ function ContactPreview({ kind }: { kind: 'centered' | 'cards' }) {
           ))}
           {bar(50, 44, 20, 6, 0.55)}
           <rect x="30" y="55" width="60" height="0.8" fill={c} fillOpacity="0.22" />
+        </>
+      ) : kind === 'signal' ? (
+        <>
+          {bar(10, 12, 34, 4, 0.42)}
+          {bar(10, 23, 76, 8, 0.64)}
+          {bar(10, 35, 58, 3, 0.24)}
+          <rect x="10" y="47" width="28" height="8" rx="4" fill={c} fillOpacity="0.65" />
+          <rect x="72" y="45" width="36" height="12" rx="2" fill="none" stroke={c} strokeOpacity="0.35" />
         </>
       ) : (
         <>

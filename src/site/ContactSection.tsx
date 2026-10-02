@@ -116,6 +116,22 @@ export default function ContactSection({
     )
   }
 
+  if (mode === 'signal') {
+    return (
+      <div className="contact contact--signal">
+        <div>
+          <span className="mono">AVAILABLE FOR THE RIGHT PROJECT</span>
+          <h3 className="contact__lead">{LEAD}</h3>
+          <p className="contact__sub">{SUB}</p>
+        </div>
+        <div className="contact--signal__action">
+          <a className="btn btn--primary" href={`mailto:${settings.email}`}>Start a conversation</a>
+          <DirectLinks settings={settings} />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="contact">
       <div>

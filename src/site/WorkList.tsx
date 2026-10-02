@@ -38,6 +38,21 @@ export default function WorkList({ projects, layout, limit }: Props) {
   const visible = capped ? projects.slice(0, cap) : projects
   const hidden = projects.length - visible.length
 
+  if (mode === 'showcase') {
+    return (
+      <div className="work-showcase">
+        <WorkGrid projects={visible} />
+        {hidden > 0 && (
+          <div className="work-more">
+            <button type="button" className="btn" onClick={() => setExpanded(true)}>
+              Show {hidden} more projects
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <>
       {mode === 'grid' ? (
