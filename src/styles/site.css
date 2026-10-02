@@ -1,8 +1,3 @@
-/* ==========================================================================
-   Public site
-   ========================================================================== */
-
-/* -- Ambient background effects ------------------------------------------- */
 
 .fx {
   position: fixed;
@@ -10,21 +5,17 @@
   pointer-events: none;
 }
 
-/* Particle effects sit *in front* of the page, the way real snow falls in
-   front of what you are looking at. Kept under the nav's z-index of 100 and
-   held at low opacity so text is never harder to read. */
+
 .fx--canvas {
   z-index: 90;
 }
 
-/* Aurora is a colour wash, so it belongs behind the content instead. */
 .fx--aurora {
   z-index: 0;
   overflow: hidden;
 }
 
-/* Content sits above the aurora layer. Harmless for the canvas effects,
-   which are above everything here anyway. */
+
 .nav,
 #main,
 .footer {
